@@ -129,7 +129,9 @@ function AuthControls({
   if (user) {
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm text-gray-600">{user.display_name}</span>
+        <Link href="/learn/me" className="text-sm text-gray-600 hover:text-line-green transition-colors">
+          {user.display_name}
+        </Link>
         <button
           onClick={() => void logout()}
           className="text-sm font-medium text-gray-500 hover:text-line-green transition-colors"

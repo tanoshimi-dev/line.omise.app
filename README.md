@@ -18,7 +18,7 @@
 
 ## Content Site Map (`/learn/`, `/usecase/`)
 
-Planned URL structure for SEO-driven content marketing (courses, how-to articles, client case studies) — supports the SEO goals in `sys/03_frontend/web/doc/seo-update-2026-02-16.md`. Not yet implemented.
+URL structure for SEO-driven content marketing (courses, how-to articles, client case studies) — supports the SEO goals in `sys/03_frontend/web/doc/seo-update-2026-02-16.md`. `/learn/` implemented in `dev-plan-09-frontend-learn`; `/usecase/` not yet implemented (`dev-plan-10-frontend-usecase`).
 
 | Path | Format | Contents |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ Planned URL structure for SEO-driven content marketing (courses, how-to articles
 
 `line-marketing` is a structured course (sequential lessons); `line-operation` and `ai` are flat, on-demand article lists — same shape, so they share one pattern rather than the course pattern. If `line-operation` mixes setup articles (account creation, rich menu, reply settings) and operation articles (broadcast tips, step campaigns, friend-add tactics), keep the URL flat (`/learn/line-operation/{slug}/`) and filter by tag (`?tag=rich-menu` or `/learn/line-operation/tag/rich-menu/`) instead of adding directory levels.
 
-**Open decision**: final category name — `line-operation` (used above) vs. `line-setup` (if content skews toward initial setup) vs. `line-guide` (more brand-forward).
+Category name decided (`dev-plan-09-frontend-learn`): **`line-operation`** — already committed to by the `articles.category` CHECK constraint since `dev-plan-02-database` and the `/api/articles` handlers since `dev-plan-05-content-api`, so it's the value in actual use rather than a still-open choice.
 
 Nav order for 学習コンテンツ's three sections was decided in `dev-plan-07-frontend-base`: マーケティング講座 → 運用・設定 → AI活用事例 (flagship course first, then the practical how-to category, then the smaller AI use-case category), see `sys/03_frontend/web/src/components/Header.tsx`.
 
