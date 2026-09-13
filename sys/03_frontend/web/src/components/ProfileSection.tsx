@@ -38,14 +38,10 @@ export default function ProfileSection() {
             プロフィール
           </h3>
 
-          <p className="mt-4 text-gray-600 leading-relaxed">
-            <div>
-            大手SIer・社内SEを経て、フリーランスエンジニアとして活動しています。
-            </div>
-            <div>
-            キャリア20年のエンジニアが、あなたの店舗のDXを直接サポートします。
-            </div>
-          </p>
+          <div className="mt-4 text-gray-600 leading-relaxed">
+            <p>大手SIer・社内SEを経て、フリーランスエンジニアとして活動しています。</p>
+            <p>キャリア20年のエンジニアが、あなたの店舗のDXを直接サポートします。</p>
+          </div>
 
           {/* Career highlights */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -8,6 +8,8 @@ export interface DemoApp {
   techBadges: string[]
   screenshot?: string
   movie?: string
+  /** Live URL of the deployed demo app (separate domain — dev-plan-08-frontend-lp). */
+  externalUrl: string
 }
 
 export const demoApps: DemoApp[] = [
@@ -27,6 +29,7 @@ export const demoApps: DemoApp[] = [
     techBadges: ['React', 'TypeScript', 'Laravel', 'LINE LIFF'],
     screenshot: '/images/membership.png',
     movie: '/images/membership.mp4',
+    externalUrl: 'https://membership.omise.app',
   },
   {
     id: 'salon-reservation',
@@ -44,6 +47,7 @@ export const demoApps: DemoApp[] = [
     techBadges: ['React', 'TypeScript', 'Laravel', 'LINE Messaging API'],
     screenshot: '/images/salon-reservation.png',
     movie: '/images/salon-reservation.mp4',
+    externalUrl: 'https://salon-reservation.omise.app',
   },
   {
     id: 'sweets-shop',
@@ -61,5 +65,6 @@ export const demoApps: DemoApp[] = [
     techBadges: ['React', 'TypeScript', 'Laravel', 'LINE Messaging API'],
     screenshot: '/images/sweets-shop.png',
     movie: '/images/sweets-shop.mp4',
+    externalUrl: 'https://sweets-shop.omise.app',
   },
 ]
