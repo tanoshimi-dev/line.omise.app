@@ -55,6 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Ignore — logging out is best-effort until dev-plan-04-auth exists.
     }
     setUser(null)
+    // Hard navigation, not router.push: logging out while on an
+    // admin-guarded page (dev-plan-11-frontend-admin) must force a fresh
+    // server-side re-check of the session on whatever page loads next.
+    // The admin guard only runs in the Server Component layout, which
+    // client-side state changes here don't re-invoke, and even a
+    // router.push could still serve a cached client-side render of the
+    // admin route on a subsequent back-navigation. A full reload sidesteps
+    // both.
+    window.location.href = '/'
   }
 
   useEffect(() => {
