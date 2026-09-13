@@ -59,6 +59,21 @@ func (r *CourseRepository) ListPublished(ctx context.Context) ([]Course, error) 
 	return scanCourses(rows)
 }
 
+// ListAll returns every course regardless of status, for the admin UI
+// (dev-plan-11-frontend-admin) which needs to see and manage drafts too.
+func (r *CourseRepository) ListAll(ctx context.Context) ([]Course, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, slug, title, COALESCE(description, ''), sort_order, status, created_at, updated_at
+		FROM courses
+		ORDER BY sort_order, id
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanCourses(rows)
+}
+
 // GetPublishedBySlug returns a published course, or ErrNotFound if it
 // doesn't exist or isn't published.
 func (r *CourseRepository) GetPublishedBySlug(ctx context.Context, slug string) (*Course, error) {

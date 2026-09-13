@@ -87,21 +87,31 @@ func main() {
 	api.GET("/usecases", usecaseHandler.ListUsecases)
 	api.GET("/usecases/:slug", usecaseHandler.GetUsecase)
 
-	// Admin content API — write access requires role=admin.
+	// Admin content API — write access requires role=admin. GET routes here
+	// (dev-plan-11-frontend-admin) return drafts too, unlike the public GETs
+	// above, so they must stay behind requireAdmin.
 	admin := api.Group("/admin", requireAdmin)
+	admin.GET("/courses", courseHandler.AdminListCourses)
+	admin.GET("/courses/:id", courseHandler.AdminGetCourse)
 	admin.POST("/courses", courseHandler.AdminCreateCourse)
 	admin.PUT("/courses/:id", courseHandler.AdminUpdateCourse)
 	admin.DELETE("/courses/:id", courseHandler.AdminDeleteCourse)
 	admin.POST("/courses/:id/lessons", courseHandler.AdminCreateLesson)
+	admin.GET("/lessons/:id", courseHandler.AdminGetLesson)
 	admin.PUT("/lessons/:id", courseHandler.AdminUpdateLesson)
 	admin.DELETE("/lessons/:id", courseHandler.AdminDeleteLesson)
+	admin.GET("/articles", articleHandler.AdminListArticles)
+	admin.GET("/articles/:id", articleHandler.AdminGetArticle)
 	admin.POST("/articles", articleHandler.AdminCreateArticle)
 	admin.PUT("/articles/:id", articleHandler.AdminUpdateArticle)
 	admin.DELETE("/articles/:id", articleHandler.AdminDeleteArticle)
 	admin.POST("/articles/:id/tags", articleHandler.AdminAttachTag)
+	admin.GET("/usecases", usecaseHandler.AdminListUsecases)
+	admin.GET("/usecases/:id", usecaseHandler.AdminGetUsecase)
 	admin.POST("/usecases", usecaseHandler.AdminCreateUsecase)
 	admin.PUT("/usecases/:id", usecaseHandler.AdminUpdateUsecase)
 	admin.DELETE("/usecases/:id", usecaseHandler.AdminDeleteUsecase)
+	admin.GET("/lessons/:id/exam", examHandler.AdminGetExamByLesson)
 	admin.POST("/lessons/:lessonId/exam", examHandler.AdminCreateExam)
 	admin.POST("/exams/:examId/questions", examHandler.AdminCreateQuestion)
 	admin.PUT("/questions/:id", examHandler.AdminUpdateQuestion)

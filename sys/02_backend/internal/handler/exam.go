@@ -45,6 +45,35 @@ type submitRequest struct {
 	Answers []submitAnswer `json:"answers"`
 }
 
+// AdminGetExamByLesson handles GET /api/admin/lessons/:id/exam — the admin
+// view (includes is_correct, unlike the Reader-facing GET
+// /api/lessons/:lessonId/exam), for the exam management UI
+// (dev-plan-11-frontend-admin 11.5). 404 if the lesson has no exam yet.
+// Uses :id (not :lessonId) to match the existing /admin/lessons/:id routes —
+// Gin's router rejects two different wildcard names at the same path position.
+func (h *ExamHandler) AdminGetExamByLesson(c *gin.Context) {
+	lessonID, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	exam, err := h.Exams.GetByLessonID(c.Request.Context(), lessonID)
+	if err != nil {
+		respondExamError(c, err)
+		return
+	}
+	questions, err := h.Exams.ListQuestions(c.Request.Context(), exam.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	choices, err := h.Exams.ListChoicesForExam(c.Request.Context(), exam.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	c.JSON(http.StatusOK, examAdminJSON(exam, questions, choices))
+}
+
 // AdminCreateExam handles POST /api/admin/lessons/:lessonId/exam.
 func (h *ExamHandler) AdminCreateExam(c *gin.Context) {
 	lessonID, ok := parseIDParam(c, "lessonId")

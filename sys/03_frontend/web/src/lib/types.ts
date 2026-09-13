@@ -69,6 +69,33 @@ export interface Exam {
   questions: ExamQuestion[]
 }
 
+// Admin-facing shapes DO carry is_correct (dev-plan-11-frontend-admin 11.5,
+// GET /api/admin/lessons/:id/exam) — kept as separate types from the
+// Reader-facing ones above so a stray is_correct can never leak by using
+// the wrong type in the wrong place.
+export interface AdminExamChoice {
+  id: string
+  choice_text: string
+  is_correct: boolean
+  sort_order: number
+}
+
+export interface AdminExamQuestion {
+  id: string
+  exam_id: string
+  question_text: string
+  sort_order: number
+  choices: AdminExamChoice[]
+}
+
+export interface AdminExam {
+  id: string
+  lesson_id: string
+  title: string
+  passing_score: number
+  questions?: AdminExamQuestion[]
+}
+
 export interface ExamResult {
   score: number
   passed: boolean

@@ -35,6 +35,31 @@ func NewUsecaseRepository(db *pgxpool.Pool) *UsecaseRepository {
 	return &UsecaseRepository{db: db}
 }
 
+// ListAll returns every usecase regardless of status, for the admin UI
+// (dev-plan-11-frontend-admin) which needs to see and manage drafts too.
+func (r *UsecaseRepository) ListAll(ctx context.Context) ([]Usecase, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, slug, client_name, title, COALESCE(body, ''), status,
+			COALESCE(thumbnail_url, ''), COALESCE(related_demo_app, ''), published_at, created_at, updated_at
+		FROM usecases
+		ORDER BY id DESC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var usecases []Usecase
+	for rows.Next() {
+		u, err := scanUsecase(rows)
+		if err != nil {
+			return nil, err
+		}
+		usecases = append(usecases, *u)
+	}
+	return usecases, rows.Err()
+}
+
 func (r *UsecaseRepository) ListPublished(ctx context.Context) ([]Usecase, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, slug, client_name, title, COALESCE(body, ''), status,

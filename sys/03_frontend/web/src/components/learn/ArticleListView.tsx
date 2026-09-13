@@ -2,12 +2,8 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { serverApi } from '@/lib/serverApi'
 import { excerpt } from '@/lib/markdown'
+import { CATEGORY_LABELS } from '@/lib/articleCategories'
 import type { Article, ArticleCategory } from '@/lib/types'
-
-export const CATEGORY_LABELS: Record<ArticleCategory, string> = {
-  'line-operation': 'LINE運用・設定',
-  ai: '生成AI活用事例',
-}
 
 interface ArticlesResponse {
   articles: Article[]

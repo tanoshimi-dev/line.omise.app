@@ -60,6 +60,45 @@ func (h *ArticleHandler) GetArticle(c *gin.Context) {
 	c.JSON(http.StatusOK, h.articleJSON(c, article))
 }
 
+// AdminListArticles handles GET /api/admin/articles?category=... — all
+// statuses; category is optional (omit to list both) (dev-plan-11 11.3).
+func (h *ArticleHandler) AdminListArticles(c *gin.Context) {
+	category := c.Query("category")
+	if category != "" {
+		if err := service.ValidateArticleCategory(category); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	articles, err := h.Articles.ListAll(c.Request.Context(), category)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list articles"})
+		return
+	}
+
+	items := make([]gin.H, 0, len(articles))
+	for i := range articles {
+		items = append(items, h.articleJSON(c, &articles[i]))
+	}
+	c.JSON(http.StatusOK, gin.H{"articles": items})
+}
+
+// AdminGetArticle handles GET /api/admin/articles/:id — any status, for
+// prefilling the edit form.
+func (h *ArticleHandler) AdminGetArticle(c *gin.Context) {
+	id, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	article, err := h.Articles.GetByID(c.Request.Context(), id)
+	if err != nil {
+		respondArticleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, h.articleJSON(c, article))
+}
+
 // AdminCreateArticle handles POST /api/admin/articles.
 func (h *ArticleHandler) AdminCreateArticle(c *gin.Context) {
 	var req articleRequest

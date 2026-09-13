@@ -50,6 +50,36 @@ func (h *UsecaseHandler) GetUsecase(c *gin.Context) {
 	c.JSON(http.StatusOK, usecaseJSON(usecase))
 }
 
+// AdminListUsecases handles GET /api/admin/usecases — all statuses
+// (dev-plan-11-frontend-admin 11.4).
+func (h *UsecaseHandler) AdminListUsecases(c *gin.Context) {
+	usecases, err := h.Usecases.ListAll(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list usecases"})
+		return
+	}
+	items := make([]gin.H, 0, len(usecases))
+	for i := range usecases {
+		items = append(items, usecaseJSON(&usecases[i]))
+	}
+	c.JSON(http.StatusOK, gin.H{"usecases": items})
+}
+
+// AdminGetUsecase handles GET /api/admin/usecases/:id — any status, for
+// prefilling the edit form.
+func (h *UsecaseHandler) AdminGetUsecase(c *gin.Context) {
+	id, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	usecase, err := h.Usecases.GetByID(c.Request.Context(), id)
+	if err != nil {
+		respondUsecaseError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, usecaseJSON(usecase))
+}
+
 // AdminCreateUsecase handles POST /api/admin/usecases.
 func (h *UsecaseHandler) AdminCreateUsecase(c *gin.Context) {
 	var req usecaseRequest

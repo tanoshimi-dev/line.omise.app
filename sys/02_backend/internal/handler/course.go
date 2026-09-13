@@ -77,6 +77,56 @@ func (h *CourseHandler) GetLesson(c *gin.Context) {
 	c.JSON(http.StatusOK, lessonJSON(lesson))
 }
 
+// AdminListCourses handles GET /api/admin/courses — all statuses, for the
+// admin UI's course list (dev-plan-11-frontend-admin 11.2).
+func (h *CourseHandler) AdminListCourses(c *gin.Context) {
+	courses, err := h.Courses.ListAll(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list courses"})
+		return
+	}
+	items := make([]gin.H, 0, len(courses))
+	for i := range courses {
+		items = append(items, courseJSON(&courses[i], nil))
+	}
+	c.JSON(http.StatusOK, gin.H{"courses": items})
+}
+
+// AdminGetCourse handles GET /api/admin/courses/:id — any status, with all
+// of its lessons (any status) embedded, for prefilling the edit form.
+func (h *CourseHandler) AdminGetCourse(c *gin.Context) {
+	id, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	course, err := h.Courses.GetByID(c.Request.Context(), id)
+	if err != nil {
+		respondCourseError(c, err)
+		return
+	}
+	lessons, err := h.Courses.ListLessonsByCourse(c.Request.Context(), course.ID, false)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list lessons"})
+		return
+	}
+	c.JSON(http.StatusOK, courseJSON(course, lessons))
+}
+
+// AdminGetLesson handles GET /api/admin/lessons/:id — any status, for
+// prefilling the lesson edit form.
+func (h *CourseHandler) AdminGetLesson(c *gin.Context) {
+	id, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	lesson, err := h.Courses.GetLessonByID(c.Request.Context(), id)
+	if err != nil {
+		respondCourseError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, lessonJSON(lesson))
+}
+
 // AdminCreateCourse handles POST /api/admin/courses.
 func (h *CourseHandler) AdminCreateCourse(c *gin.Context) {
 	var req courseRequest

@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { serverApi } from '@/lib/serverApi'
 import { excerpt } from '@/lib/markdown'
 import Markdown from './Markdown'
-import { CATEGORY_LABELS } from './ArticleListView'
+import { CATEGORY_LABELS } from '@/lib/articleCategories'
 import type { Article, ArticleCategory } from '@/lib/types'
 
 // Fetched separately from the render so generateMetadata and the page body

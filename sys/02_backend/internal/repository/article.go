@@ -38,6 +38,35 @@ func NewArticleRepository(db *pgxpool.Pool) *ArticleRepository {
 	return &ArticleRepository{db: db}
 }
 
+// ListAll returns every article regardless of status, optionally narrowed to
+// one category, for the admin UI (dev-plan-11-frontend-admin) which needs to
+// see and manage drafts too. Pass "" for category to list both.
+func (r *ArticleRepository) ListAll(ctx context.Context, category string) ([]Article, error) {
+	query := `SELECT id, category, slug, title, COALESCE(body, ''), status, published_at, created_at, updated_at FROM articles`
+	var args []any
+	if category != "" {
+		query += ` WHERE category = $1`
+		args = append(args, category)
+	}
+	query += ` ORDER BY id DESC`
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var articles []Article
+	for rows.Next() {
+		a, err := scanArticle(rows)
+		if err != nil {
+			return nil, err
+		}
+		articles = append(articles, *a)
+	}
+	return articles, rows.Err()
+}
+
 // ListPublished returns published articles for a category, optionally
 // narrowed to those carrying tagSlug (dev-plan-05 5.2). Draft articles never
 // appear here.
