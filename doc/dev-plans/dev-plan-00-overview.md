@@ -35,7 +35,7 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 
 ## 開発計画ファイル一覧
 
-進捗ステータス最終更新: 2026-09-13（Step 06）
+進捗ステータス最終更新: 2026-09-13（Step 08）
 
 | # | ファイル | 内容 | 状態 |
 |---|---|---|---|
@@ -46,15 +46,16 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 | 05 | [dev-plan-05-content-api.md](dev-plan-05-content-api.md) | コンテンツ CMS API（講座・レッスン・記事・事例、Admin CRUD + 公開 GET） | ✅ 完了（[結果](result/dev-plan-05-content-api-result.md)）— 実装中に `RequireAdmin` の認可バイパスの重大バグを発見・修正 |
 | 06 | [dev-plan-06-exam-progress-api.md](dev-plan-06-exam-progress-api.md) | 試験（exam）API・学習進捗（progress）保存 API | ✅ 完了（[結果](result/dev-plan-06-exam-progress-api-result.md)） |
 | 07 | [dev-plan-07-frontend-base.md](dev-plan-07-frontend-base.md) | Next.js プロジェクト初期化・レイアウト・認証クライアント統合 | ✅ 完了（[結果](result/dev-plan-07-frontend-base-result.md)）— ログイン導線は Step 04 の実ログイン確認で動作確認済み |
-| 08 | [dev-plan-08-frontend-lp.md](dev-plan-08-frontend-lp.md) | 既存 LP（React+Vite）の Next.js への移行 | ⬜ 未着手 |
+| 08 | [dev-plan-08-frontend-lp.md](dev-plan-08-frontend-lp.md) | 既存 LP（React+Vite）の Next.js への移行 | ✅ 完了（[結果](result/dev-plan-08-frontend-lp-result.md)）— `ProfileSection` のハイドレーションバグを修正、`og-image.png` は未作成のまま |
 | 09 | [dev-plan-09-frontend-learn.md](dev-plan-09-frontend-learn.md) | `/learn/` 講座・記事一覧/詳細・試験・進捗表示 UI | ⬜ 未着手 |
 | 10 | [dev-plan-10-frontend-usecase.md](dev-plan-10-frontend-usecase.md) | `/usecase/` 一覧・詳細 UI | ⬜ 未着手 |
 | 11 | [dev-plan-11-frontend-admin.md](dev-plan-11-frontend-admin.md) | 管理画面（コンテンツ作成・更新、Admin 限定） | ⬜ 未着手 |
 | 12 | [dev-plan-12-test-phase1.md](dev-plan-12-test-phase1.md) | Go テスト・Next.js テスト（Vitest）・Playwright E2E | ⬜ 未着手 |
 | 13 | [dev-plan-13-deploy-phase1.md](dev-plan-13-deploy-phase1.md) | 本番 VPS デプロイ・Traefik/Cloudflare 登録・稼働確認 | ⬜ 未着手 |
 
-**次の Step:** Phase 1 — CMS API（Step 01〜06）が完了。次は 08〜11（フロントエンド実装 — LP移行・
-learn UI・usecase UI・管理画面）。いずれも Step 05/06 で実装した `/api/*` を消費する形で進める。
+**次の Step:** 09（`/learn/` UI）・10（`/usecase/` UI）— LP移行（Step08）で確立した
+「ページごとに metadata を持つ」パターンと、Step05/06 の `/api/*` を消費して実装する。
+残る TODO: `public/images/og-image.png` の作成（ユーザー側のデザイン作業）。
 
 ## 依存関係
 
