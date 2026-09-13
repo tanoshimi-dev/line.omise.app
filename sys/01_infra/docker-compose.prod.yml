@@ -36,8 +36,27 @@ services:
     networks:
       - line-omise-web
       - line-omise-internal
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-  # DB service intentionally omitted — see dev-plan-02-database.md.
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    # Credentials are not committed — create this file on the VPS (not
+    # tracked; see sys/secrets/). Must define POSTGRES_USER,
+    # POSTGRES_PASSWORD, POSTGRES_DB matching line-api's DATABASE_URL.
+    env_file:
+      - ../secrets/postgres.env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - line-omise-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 networks:
   line-omise-web:
@@ -45,3 +64,6 @@ networks:
     name: traefik-network
   line-omise-internal:
     name: line-omise-internal
+
+volumes:
+  postgres-data:

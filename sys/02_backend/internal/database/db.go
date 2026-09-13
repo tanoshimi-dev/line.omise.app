@@ -1,67 +1,69 @@
-// Package database manages the database connection pool.
-//
-// NOTE: the DB engine itself is decided in dev-plan-02-database.md (not yet
-// implemented). Until then, this package only tracks whether DATABASE_URL is
-// configured and reachable at the TCP level, so /health has something
-// meaningful to report without hard-depending on a driver/schema that
-// doesn't exist yet.
+// Package database manages the PostgreSQL connection pool (dev-plan-02-database).
 package database
 
 import (
 	"context"
-	"net"
-	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Status describes the current reachability of the database, as far as this
-// stub can tell without a real driver.
+// Pool wraps a pgx connection pool. A Pool with no underlying pgxpool.Pool
+// (Configured() == false) is valid and represents "no DATABASE_URL set" —
+// callers such as /health degrade gracefully instead of failing to start.
+type Pool struct {
+	pool *pgxpool.Pool
+}
+
+// Connect creates a connection pool for the given DSN. Connecting is lazy
+// (pgxpool does not dial until first use), so an unreachable database does
+// not fail startup — Check reports reachability for /health instead.
+func Connect(ctx context.Context, databaseURL string) (*Pool, error) {
+	if databaseURL == "" {
+		return &Pool{}, nil
+	}
+	pool, err := pgxpool.New(ctx, databaseURL)
+	if err != nil {
+		return nil, err
+	}
+	return &Pool{pool: pool}, nil
+}
+
+// Configured reports whether a DATABASE_URL was provided.
+func (p *Pool) Configured() bool {
+	return p != nil && p.pool != nil
+}
+
+// DB returns the underlying pgx pool for use by repositories (dev-plan-05/06).
+func (p *Pool) DB() *pgxpool.Pool {
+	return p.pool
+}
+
+// Close releases all pooled connections. Safe to call on an unconfigured Pool.
+func (p *Pool) Close() {
+	if p.Configured() {
+		p.pool.Close()
+	}
+}
+
+// Status describes the current reachability of the database.
 type Status struct {
 	Configured bool
 	Reachable  bool
 	Detail     string
 }
 
-// Check reports the database status for the given DATABASE_URL. It never
-// returns an error itself — callers (e.g. the health handler) decide how to
-// react to an unreachable or unconfigured database.
-func Check(ctx context.Context, databaseURL string) Status {
-	if databaseURL == "" {
-		return Status{Configured: false, Detail: "DATABASE_URL not set (expected until dev-plan-02-database lands)"}
+// Check pings the database, bounded by a short timeout so /health stays fast.
+func Check(ctx context.Context, p *Pool) Status {
+	if !p.Configured() {
+		return Status{Detail: "DATABASE_URL not set"}
 	}
 
-	host, ok := hostPort(databaseURL)
-	if !ok {
-		return Status{Configured: true, Detail: "DATABASE_URL set but host:port could not be parsed"}
-	}
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
 
-	d := net.Dialer{Timeout: 2 * time.Second}
-	conn, err := d.DialContext(ctx, "tcp", host)
-	if err != nil {
+	if err := p.pool.Ping(ctx); err != nil {
 		return Status{Configured: true, Reachable: false, Detail: err.Error()}
 	}
-	_ = conn.Close()
 	return Status{Configured: true, Reachable: true}
-}
-
-// hostPort extracts the host:port portion of a DSN shaped like
-// postgres://user:pass@host:port/dbname. It's intentionally minimal — a real
-// driver/connection pool replaces this in dev-plan-02-database.
-func hostPort(dsn string) (string, bool) {
-	afterScheme := dsn
-	if _, rest, ok := strings.Cut(dsn, "://"); ok {
-		afterScheme = rest
-	}
-	afterAt := afterScheme
-	if idx := strings.LastIndex(afterScheme, "@"); idx != -1 {
-		afterAt = afterScheme[idx+1:]
-	}
-	end := strings.IndexAny(afterAt, "/?")
-	if end != -1 {
-		afterAt = afterAt[:end]
-	}
-	if afterAt == "" || !strings.Contains(afterAt, ":") {
-		return "", false
-	}
-	return afterAt, true
 }

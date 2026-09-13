@@ -26,11 +26,43 @@ services:
       - "8080:8080"
     networks:
       - line-omise-internal
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-  # DB service intentionally omitted — engine choice is decided in
-  # dev-plan-02-database.md (recommended: PostgreSQL). Add it here once
-  # that step lands.
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: line_omise
+      POSTGRES_PASSWORD: line_omise
+      POSTGRES_DB: line_omise_app
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - line-omise-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U line_omise -d line_omise_app"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Dev-only DB browser UI. Not present in docker-compose.prod.yml.
+  adminer:
+    image: adminer:4
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    networks:
+      - line-omise-internal
+    depends_on:
+      - postgres
 
 networks:
   line-omise-internal:
     name: line-omise-internal
+
+volumes:
+  postgres-data:

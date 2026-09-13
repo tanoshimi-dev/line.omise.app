@@ -14,5 +14,7 @@ Thumbs.db
 sys/secrets/*
 !sys/secrets/.gitkeep
 
+doc/runbook/*
+
 # Logs
 *.log

@@ -40,8 +40,8 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 | # | ファイル | 内容 | 状態 |
 |---|---|---|---|
 | 01 | [dev-plan-01-infra-docker.md](dev-plan-01-infra-docker.md) | Docker Compose・共有 Traefik への相乗り・Cloudflare DNS | ✅ 完了（[結果](dev-plan-01-infra-docker-result.md)）— Cloudflare DNS 登録のみユーザー側対応待ち |
-| 02 | [dev-plan-02-database.md](dev-plan-02-database.md) | DB 選定・スキーマ（ユーザー・コンテンツ・試験・進捗）・マイグレーション | ⬜ 未着手 |
-| 03 | [dev-plan-03-backend-base.md](dev-plan-03-backend-base.md) | Go プロジェクト初期化・Gin セットアップ | ✅ 完了（[結果](dev-plan-03-backend-base-result.md)）— `/health` の DB 到達性チェックは Step 02 待ちのスタブ |
+| 02 | [dev-plan-02-database.md](dev-plan-02-database.md) | DB 選定・スキーマ（ユーザー・コンテンツ・試験・進捗）・マイグレーション | ✅ 完了（[結果](dev-plan-02-database-result.md)）— PostgreSQL + golang-migrate、`docker-compose.yml` に `postgres` サービス追加済み |
+| 03 | [dev-plan-03-backend-base.md](dev-plan-03-backend-base.md) | Go プロジェクト初期化・Gin セットアップ | ✅ 完了（[結果](dev-plan-03-backend-base-result.md)）— `/health` の DB 到達性チェックは Step 02 で実ドライバ（pgx）に置き換え済み |
 | 04 | [dev-plan-04-auth.md](dev-plan-04-auth.md) | LINE Login / Google OAuth 統合・Admin/Reader ロール | ⬜ 未着手 |
 | 05 | [dev-plan-05-content-api.md](dev-plan-05-content-api.md) | コンテンツ CMS API（講座・レッスン・記事・事例、Admin CRUD + 公開 GET） | ⬜ 未着手 |
 | 06 | [dev-plan-06-exam-progress-api.md](dev-plan-06-exam-progress-api.md) | 試験（exam）API・学習進捗（progress）保存 API | ⬜ 未着手 |
@@ -53,7 +53,7 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 | 12 | [dev-plan-12-test-phase1.md](dev-plan-12-test-phase1.md) | Go テスト・Next.js テスト（Vitest）・Playwright E2E | ⬜ 未着手 |
 | 13 | [dev-plan-13-deploy-phase1.md](dev-plan-13-deploy-phase1.md) | 本番 VPS デプロイ・Traefik/Cloudflare 登録・稼働確認 | ⬜ 未着手 |
 
-**次の Step:** 02（DB エンジン決定・スキーマ）— 03/07 は Step 02 未着手のまま先行実装されており、DB 実ドライバへの置き換えと Step 04（認証）着手の前提条件になっている。
+**次の Step:** 04（LINE Login / Google OAuth 統合・Admin/Reader ロール）— 01〜03・07 が完了し、`users` テーブルとマイグレーション基盤が揃ったため着手可能。
 
 ## 依存関係
 
