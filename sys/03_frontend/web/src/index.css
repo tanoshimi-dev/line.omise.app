@@ -1,0 +1,27 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Noto Sans JP', sans-serif;
+
+  --color-line-green: #06C755;
+  --color-line-green-dark: #05a847;
+  --color-line-green-light: #e8f9ef;
+  --color-dark-navy: #1a1a2e;
+  --color-dark-navy-light: #2a2a4e;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
