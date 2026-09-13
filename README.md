@@ -34,7 +34,9 @@ Planned URL structure for SEO-driven content marketing (courses, how-to articles
 
 `line-marketing` is a structured course (sequential lessons); `line-operation` and `ai` are flat, on-demand article lists — same shape, so they share one pattern rather than the course pattern. If `line-operation` mixes setup articles (account creation, rich menu, reply settings) and operation articles (broadcast tips, step campaigns, friend-add tactics), keep the URL flat (`/learn/line-operation/{slug}/`) and filter by tag (`?tag=rich-menu` or `/learn/line-operation/tag/rich-menu/`) instead of adding directory levels.
 
-**Open decisions**: final category name — `line-operation` (used above) vs. `line-setup` (if content skews toward initial setup) vs. `line-guide` (more brand-forward) — and the hamburger-menu order among 学習コンテンツ's three sections (マーケティング講座 / 運用・設定 / AI活用事例).
+**Open decision**: final category name — `line-operation` (used above) vs. `line-setup` (if content skews toward initial setup) vs. `line-guide` (more brand-forward).
+
+Nav order for 学習コンテンツ's three sections was decided in `dev-plan-07-frontend-base`: マーケティング講座 → 運用・設定 → AI活用事例 (flagship course first, then the practical how-to category, then the smaller AI use-case category), see `sys/03_frontend/web/src/components/Header.tsx`.
 
 ---
 

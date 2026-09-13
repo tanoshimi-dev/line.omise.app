@@ -35,21 +35,25 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 
 ## 開発計画ファイル一覧
 
-| # | ファイル | 内容 |
-|---|---|---|
-| 01 | [dev-plan-01-infra-docker.md](dev-plan-01-infra-docker.md) | Docker Compose・共有 Traefik への相乗り・Cloudflare DNS |
-| 02 | [dev-plan-02-database.md](dev-plan-02-database.md) | DB 選定・スキーマ（ユーザー・コンテンツ・試験・進捗）・マイグレーション |
-| 03 | [dev-plan-03-backend-base.md](dev-plan-03-backend-base.md) | Go プロジェクト初期化・Gin セットアップ |
-| 04 | [dev-plan-04-auth.md](dev-plan-04-auth.md) | LINE Login / Google OAuth 統合・Admin/Reader ロール |
-| 05 | [dev-plan-05-content-api.md](dev-plan-05-content-api.md) | コンテンツ CMS API（講座・レッスン・記事・事例、Admin CRUD + 公開 GET） |
-| 06 | [dev-plan-06-exam-progress-api.md](dev-plan-06-exam-progress-api.md) | 試験（exam）API・学習進捗（progress）保存 API |
-| 07 | [dev-plan-07-frontend-base.md](dev-plan-07-frontend-base.md) | Next.js プロジェクト初期化・レイアウト・認証クライアント統合 |
-| 08 | [dev-plan-08-frontend-lp.md](dev-plan-08-frontend-lp.md) | 既存 LP（React+Vite）の Next.js への移行 |
-| 09 | [dev-plan-09-frontend-learn.md](dev-plan-09-frontend-learn.md) | `/learn/` 講座・記事一覧/詳細・試験・進捗表示 UI |
-| 10 | [dev-plan-10-frontend-usecase.md](dev-plan-10-frontend-usecase.md) | `/usecase/` 一覧・詳細 UI |
-| 11 | [dev-plan-11-frontend-admin.md](dev-plan-11-frontend-admin.md) | 管理画面（コンテンツ作成・更新、Admin 限定） |
-| 12 | [dev-plan-12-test-phase1.md](dev-plan-12-test-phase1.md) | Go テスト・Next.js テスト（Vitest）・Playwright E2E |
-| 13 | [dev-plan-13-deploy-phase1.md](dev-plan-13-deploy-phase1.md) | 本番 VPS デプロイ・Traefik/Cloudflare 登録・稼働確認 |
+進捗ステータス最終更新: 2026-09-13
+
+| # | ファイル | 内容 | 状態 |
+|---|---|---|---|
+| 01 | [dev-plan-01-infra-docker.md](dev-plan-01-infra-docker.md) | Docker Compose・共有 Traefik への相乗り・Cloudflare DNS | ✅ 完了（[結果](dev-plan-01-infra-docker-result.md)）— Cloudflare DNS 登録のみユーザー側対応待ち |
+| 02 | [dev-plan-02-database.md](dev-plan-02-database.md) | DB 選定・スキーマ（ユーザー・コンテンツ・試験・進捗）・マイグレーション | ⬜ 未着手 |
+| 03 | [dev-plan-03-backend-base.md](dev-plan-03-backend-base.md) | Go プロジェクト初期化・Gin セットアップ | ✅ 完了（[結果](dev-plan-03-backend-base-result.md)）— `/health` の DB 到達性チェックは Step 02 待ちのスタブ |
+| 04 | [dev-plan-04-auth.md](dev-plan-04-auth.md) | LINE Login / Google OAuth 統合・Admin/Reader ロール | ⬜ 未着手 |
+| 05 | [dev-plan-05-content-api.md](dev-plan-05-content-api.md) | コンテンツ CMS API（講座・レッスン・記事・事例、Admin CRUD + 公開 GET） | ⬜ 未着手 |
+| 06 | [dev-plan-06-exam-progress-api.md](dev-plan-06-exam-progress-api.md) | 試験（exam）API・学習進捗（progress）保存 API | ⬜ 未着手 |
+| 07 | [dev-plan-07-frontend-base.md](dev-plan-07-frontend-base.md) | Next.js プロジェクト初期化・レイアウト・認証クライアント統合 | ✅ 完了（[結果](dev-plan-07-frontend-base-result.md)）— ログイン導線は実装済みだが Step 04 待ちで実ログイン未検証 |
+| 08 | [dev-plan-08-frontend-lp.md](dev-plan-08-frontend-lp.md) | 既存 LP（React+Vite）の Next.js への移行 | ⬜ 未着手 |
+| 09 | [dev-plan-09-frontend-learn.md](dev-plan-09-frontend-learn.md) | `/learn/` 講座・記事一覧/詳細・試験・進捗表示 UI | ⬜ 未着手 |
+| 10 | [dev-plan-10-frontend-usecase.md](dev-plan-10-frontend-usecase.md) | `/usecase/` 一覧・詳細 UI | ⬜ 未着手 |
+| 11 | [dev-plan-11-frontend-admin.md](dev-plan-11-frontend-admin.md) | 管理画面（コンテンツ作成・更新、Admin 限定） | ⬜ 未着手 |
+| 12 | [dev-plan-12-test-phase1.md](dev-plan-12-test-phase1.md) | Go テスト・Next.js テスト（Vitest）・Playwright E2E | ⬜ 未着手 |
+| 13 | [dev-plan-13-deploy-phase1.md](dev-plan-13-deploy-phase1.md) | 本番 VPS デプロイ・Traefik/Cloudflare 登録・稼働確認 | ⬜ 未着手 |
+
+**次の Step:** 02（DB エンジン決定・スキーマ）— 03/07 は Step 02 未着手のまま先行実装されており、DB 実ドライバへの置き換えと Step 04（認証）着手の前提条件になっている。
 
 ## 依存関係
 

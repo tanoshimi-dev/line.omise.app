@@ -1,0 +1,47 @@
+services:
+  line-web:
+    build:
+      context: ../03_frontend/web
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../03_frontend/web/.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.line-web.rule=Host(`line.omise.app`)"
+      - "traefik.http.routers.line-web.entrypoints=https"
+      - "traefik.http.routers.line-web.tls=true"
+      - "traefik.http.routers.line-web.tls.certresolver=cloudflare"
+      - "traefik.http.services.line-web.loadbalancer.server.port=3000"
+    networks:
+      - line-omise-web
+      - line-omise-internal
+    depends_on:
+      - line-api
+
+  line-api:
+    build:
+      context: ../02_backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../02_backend/.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.line-api.rule=Host(`api-line.omise.app`)"
+      - "traefik.http.routers.line-api.entrypoints=https"
+      - "traefik.http.routers.line-api.tls=true"
+      - "traefik.http.routers.line-api.tls.certresolver=cloudflare"
+      - "traefik.http.services.line-api.loadbalancer.server.port=8080"
+    networks:
+      - line-omise-web
+      - line-omise-internal
+
+  # DB service intentionally omitted — see dev-plan-02-database.md.
+
+networks:
+  line-omise-web:
+    external: true
+    name: traefik-network
+  line-omise-internal:
+    name: line-omise-internal

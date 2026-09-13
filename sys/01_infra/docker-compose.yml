@@ -1,0 +1,36 @@
+services:
+  line-web:
+    build:
+      context: ../03_frontend/web
+      dockerfile: Dockerfile
+    # NOTE: Dockerfile doesn't exist yet — added in dev-plan-07-frontend-base.
+    restart: unless-stopped
+    env_file:
+      - ../03_frontend/web/.env
+    ports:
+      - "3000:3000"
+    networks:
+      - line-omise-internal
+    depends_on:
+      - line-api
+
+  line-api:
+    build:
+      context: ../02_backend
+      dockerfile: Dockerfile
+    # NOTE: Dockerfile doesn't exist yet — added in dev-plan-03-backend-base.
+    restart: unless-stopped
+    env_file:
+      - ../02_backend/.env
+    ports:
+      - "8080:8080"
+    networks:
+      - line-omise-internal
+
+  # DB service intentionally omitted — engine choice is decided in
+  # dev-plan-02-database.md (recommended: PostgreSQL). Add it here once
+  # that step lands.
+
+networks:
+  line-omise-internal:
+    name: line-omise-internal

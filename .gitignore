@@ -10,6 +10,7 @@ Thumbs.db
 # Env / secrets
 .env
 .env.*
+!.env.example
 sys/secrets/*
 !sys/secrets/.gitkeep
 
