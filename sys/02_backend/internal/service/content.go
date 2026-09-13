@@ -6,9 +6,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
-
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 var (
@@ -35,15 +32,11 @@ func ValidateArticleCategory(category string) error {
 	return nil
 }
 
-// postgresUniqueViolation is the SQLSTATE code for a unique_violation.
-const postgresUniqueViolation = "23505"
-
 // AsDuplicateSlug returns ErrDuplicateSlug if err is a unique-constraint
 // violation, and the original err otherwise (including nil).
 func AsDuplicateSlug(err error) error {
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == postgresUniqueViolation {
-		return fmt.Errorf("%w: %s", ErrDuplicateSlug, pgErr.ConstraintName)
+	if isUniqueViolation(err, "") {
+		return ErrDuplicateSlug
 	}
 	return err
 }

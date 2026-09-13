@@ -39,6 +39,8 @@ func main() {
 	courseRepo := repository.NewCourseRepository(dbPool.DB())
 	articleRepo := repository.NewArticleRepository(dbPool.DB())
 	usecaseRepo := repository.NewUsecaseRepository(dbPool.DB())
+	examRepo := repository.NewExamRepository(dbPool.DB())
+	progressRepo := repository.NewProgressRepository(dbPool.DB())
 
 	authHandler := &handler.AuthHandler{
 		Providers: map[string]authprovider.Provider{
@@ -58,6 +60,8 @@ func main() {
 	courseHandler := &handler.CourseHandler{Courses: courseRepo}
 	articleHandler := &handler.ArticleHandler{Articles: articleRepo}
 	usecaseHandler := &handler.UsecaseHandler{Usecases: usecaseRepo}
+	examHandler := &handler.ExamHandler{Exams: examRepo, Courses: courseRepo, Progress: progressRepo}
+	progressHandler := &handler.ProgressHandler{Courses: courseRepo, Exams: examRepo, Progress: progressRepo}
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
@@ -98,6 +102,17 @@ func main() {
 	admin.POST("/usecases", usecaseHandler.AdminCreateUsecase)
 	admin.PUT("/usecases/:id", usecaseHandler.AdminUpdateUsecase)
 	admin.DELETE("/usecases/:id", usecaseHandler.AdminDeleteUsecase)
+	admin.POST("/lessons/:lessonId/exam", examHandler.AdminCreateExam)
+	admin.POST("/exams/:examId/questions", examHandler.AdminCreateQuestion)
+	admin.PUT("/questions/:id", examHandler.AdminUpdateQuestion)
+	admin.DELETE("/questions/:id", examHandler.AdminDeleteQuestion)
+
+	// Exam/progress endpoints — Reader login required (dev-plan-06 6.2/6.3).
+	api.GET("/lessons/:lessonId/exam", requireReader, examHandler.GetExam)
+	api.POST("/lessons/:lessonId/exam/submit", requireReader, examHandler.SubmitExam)
+	api.POST("/lessons/:lessonId/complete", requireReader, progressHandler.CompleteLesson)
+	api.GET("/courses/:slug/progress", requireReader, progressHandler.GetCourseProgress)
+	api.GET("/me/progress", requireReader, progressHandler.GetMyProgress)
 
 	log.Printf("line-api listening on :%s", cfg.Port)
 	if err := router.Run(":" + cfg.Port); err != nil {

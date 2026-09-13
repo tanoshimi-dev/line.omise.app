@@ -35,7 +35,7 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 
 ## 開発計画ファイル一覧
 
-進捗ステータス最終更新: 2026-09-13（Step 05）
+進捗ステータス最終更新: 2026-09-13（Step 06）
 
 | # | ファイル | 内容 | 状態 |
 |---|---|---|---|
@@ -44,7 +44,7 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 | 03 | [dev-plan-03-backend-base.md](dev-plan-03-backend-base.md) | Go プロジェクト初期化・Gin セットアップ | ✅ 完了（[結果](result/dev-plan-03-backend-base-result.md)）— `/health` の DB 到達性チェックは Step 02 で実ドライバ（pgx）に置き換え済み |
 | 04 | [dev-plan-04-auth.md](dev-plan-04-auth.md) | LINE Login / Google OAuth 統合・Admin/Reader ロール | ✅ 完了（[結果](result/dev-plan-04-auth-result.md)）— LINE / Google 両方の実ログインをユーザーが確認済み |
 | 05 | [dev-plan-05-content-api.md](dev-plan-05-content-api.md) | コンテンツ CMS API（講座・レッスン・記事・事例、Admin CRUD + 公開 GET） | ✅ 完了（[結果](result/dev-plan-05-content-api-result.md)）— 実装中に `RequireAdmin` の認可バイパスの重大バグを発見・修正 |
-| 06 | [dev-plan-06-exam-progress-api.md](dev-plan-06-exam-progress-api.md) | 試験（exam）API・学習進捗（progress）保存 API | ⬜ 未着手 |
+| 06 | [dev-plan-06-exam-progress-api.md](dev-plan-06-exam-progress-api.md) | 試験（exam）API・学習進捗（progress）保存 API | ✅ 完了（[結果](result/dev-plan-06-exam-progress-api-result.md)） |
 | 07 | [dev-plan-07-frontend-base.md](dev-plan-07-frontend-base.md) | Next.js プロジェクト初期化・レイアウト・認証クライアント統合 | ✅ 完了（[結果](result/dev-plan-07-frontend-base-result.md)）— ログイン導線は Step 04 の実ログイン確認で動作確認済み |
 | 08 | [dev-plan-08-frontend-lp.md](dev-plan-08-frontend-lp.md) | 既存 LP（React+Vite）の Next.js への移行 | ⬜ 未着手 |
 | 09 | [dev-plan-09-frontend-learn.md](dev-plan-09-frontend-learn.md) | `/learn/` 講座・記事一覧/詳細・試験・進捗表示 UI | ⬜ 未着手 |
@@ -53,8 +53,8 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 | 12 | [dev-plan-12-test-phase1.md](dev-plan-12-test-phase1.md) | Go テスト・Next.js テスト（Vitest）・Playwright E2E | ⬜ 未着手 |
 | 13 | [dev-plan-13-deploy-phase1.md](dev-plan-13-deploy-phase1.md) | 本番 VPS デプロイ・Traefik/Cloudflare 登録・稼働確認 | ⬜ 未着手 |
 
-**次の Step:** 06（試験・進捗 API）— 01〜05 が完了。`internal/middleware`（Reader/Admin）・
-`internal/service` の型・パターンが Step 05 で確立済みなので同様に実装できる。
+**次の Step:** Phase 1 — CMS API（Step 01〜06）が完了。次は 08〜11（フロントエンド実装 — LP移行・
+learn UI・usecase UI・管理画面）。いずれも Step 05/06 で実装した `/api/*` を消費する形で進める。
 
 ## 依存関係
 
