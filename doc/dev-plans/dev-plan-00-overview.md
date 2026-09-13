@@ -35,7 +35,7 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 
 ## 開発計画ファイル一覧
 
-進捗ステータス最終更新: 2026-09-13（Step 10）
+進捗ステータス最終更新: 2026-09-13（Step 11）
 
 | # | ファイル | 内容 | 状態 |
 |---|---|---|---|
@@ -49,11 +49,11 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 | 08 | [dev-plan-08-frontend-lp.md](dev-plan-08-frontend-lp.md) | 既存 LP（React+Vite）の Next.js への移行 | ✅ 完了（[結果](result/dev-plan-08-frontend-lp-result.md)）— `ProfileSection` のハイドレーションバグを修正、`og-image.png` は未作成のまま |
 | 09 | [dev-plan-09-frontend-learn.md](dev-plan-09-frontend-learn.md) | `/learn/` 講座・記事一覧/詳細・試験・進捗表示 UI | ✅ 完了（[結果](result/dev-plan-09-frontend-learn-result.md)）— サーバー/ブラウザでAPIベースURLを分離（`API_URL` vs `NEXT_PUBLIC_API_URL`）する設計を確立 |
 | 10 | [dev-plan-10-frontend-usecase.md](dev-plan-10-frontend-usecase.md) | `/usecase/` 一覧・詳細 UI | ✅ 完了（[結果](result/dev-plan-10-frontend-usecase-result.md)）— `usecases` に `thumbnail_url`/`related_demo_app` を追加（migration 006） |
-| 11 | [dev-plan-11-frontend-admin.md](dev-plan-11-frontend-admin.md) | 管理画面（コンテンツ作成・更新、Admin 限定） | ⬜ 未着手 |
+| 11 | [dev-plan-11-frontend-admin.md](dev-plan-11-frontend-admin.md) | 管理画面（コンテンツ作成・更新、Admin 限定） | ✅ 完了（[結果](result/dev-plan-11-frontend-admin-result.md)）— ユーザー自身のGoogleアカウントを`ADMIN_EMAILS`に追加し実アクセスを確認、ログアウト時のバグを修正 |
 | 12 | [dev-plan-12-test-phase1.md](dev-plan-12-test-phase1.md) | Go テスト・Next.js テスト（Vitest）・Playwright E2E | ⬜ 未着手 |
 | 13 | [dev-plan-13-deploy-phase1.md](dev-plan-13-deploy-phase1.md) | 本番 VPS デプロイ・Traefik/Cloudflare 登録・稼働確認 | ⬜ 未着手 |
 
-**次の Step:** 11（管理画面）— Phase 1 — Frontend（Step 07〜10）完了。
+**次の Step:** 12（Phase 1 テスト）・13（本番デプロイ）— Phase 1 — Frontend（Step 07〜11）完了。
 残る TODO: `public/images/og-image.png` の作成（ユーザー側のデザイン作業）。
 
 ## 依存関係
