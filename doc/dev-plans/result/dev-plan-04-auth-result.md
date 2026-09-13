@@ -2,6 +2,12 @@
 
 **対応プラン:** [dev-plan-04-auth.md](../dev-plan-04-auth.md)
 
+> **追記（Step 05 実装時に判明）**: この Step で実装した `internal/middleware.RequireAdmin` に、
+> Reader が Admin 限定 API を実行できてしまう認可バイパスのバグがあった
+> （`RequireReader` を関数として直接呼び出したことによる Gin ハンドラーチェーンの意図しない先行実行）。
+> 本 Step の検証時は応答本文を書かない簡易ルートでしかテストしておらず、このバグを再現できていなかった。
+> 詳細と修正内容は [dev-plan-05-content-api-result.md](dev-plan-05-content-api-result.md) を参照。
+
 ---
 
 ## 実施内容
