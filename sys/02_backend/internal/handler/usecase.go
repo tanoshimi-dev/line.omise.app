@@ -17,11 +17,13 @@ type UsecaseHandler struct {
 }
 
 type usecaseRequest struct {
-	Slug       string `json:"slug"`
-	ClientName string `json:"client_name"`
-	Title      string `json:"title"`
-	Body       string `json:"body"`
-	Status     string `json:"status"`
+	Slug           string `json:"slug"`
+	ClientName     string `json:"client_name"`
+	Title          string `json:"title"`
+	Body           string `json:"body"`
+	Status         string `json:"status"`
+	ThumbnailURL   string `json:"thumbnail_url"`
+	RelatedDemoApp string `json:"related_demo_app"`
 }
 
 // ListUsecases handles GET /api/usecases.
@@ -59,8 +61,12 @@ func (h *UsecaseHandler) AdminCreateUsecase(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if err := service.ValidateRelatedDemoApp(req.RelatedDemoApp); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	usecase, err := h.Usecases.Create(c.Request.Context(), req.Slug, req.ClientName, req.Title, req.Body, req.Status, nil)
+	usecase, err := h.Usecases.Create(c.Request.Context(), req.Slug, req.ClientName, req.Title, req.Body, req.Status, req.ThumbnailURL, req.RelatedDemoApp, nil)
 	if err != nil {
 		respondUsecaseWriteError(c, err)
 		return
@@ -83,8 +89,12 @@ func (h *UsecaseHandler) AdminUpdateUsecase(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if err := service.ValidateRelatedDemoApp(req.RelatedDemoApp); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	usecase, err := h.Usecases.Update(c.Request.Context(), id, req.Slug, req.ClientName, req.Title, req.Body, req.Status, nil)
+	usecase, err := h.Usecases.Update(c.Request.Context(), id, req.Slug, req.ClientName, req.Title, req.Body, req.Status, req.ThumbnailURL, req.RelatedDemoApp, nil)
 	if err != nil {
 		respondUsecaseWriteError(c, err)
 		return
@@ -127,14 +137,16 @@ func respondUsecaseWriteError(c *gin.Context, err error) {
 
 func usecaseJSON(usecase *repository.Usecase) gin.H {
 	return gin.H{
-		"id":           strconv.FormatInt(usecase.ID, 10),
-		"slug":         usecase.Slug,
-		"client_name":  usecase.ClientName,
-		"title":        usecase.Title,
-		"body":         usecase.Body,
-		"status":       usecase.Status,
-		"published_at": usecase.PublishedAt,
-		"created_at":   usecase.CreatedAt,
-		"updated_at":   usecase.UpdatedAt,
+		"id":               strconv.FormatInt(usecase.ID, 10),
+		"slug":             usecase.Slug,
+		"client_name":      usecase.ClientName,
+		"title":            usecase.Title,
+		"body":             usecase.Body,
+		"status":           usecase.Status,
+		"thumbnail_url":    usecase.ThumbnailURL,
+		"related_demo_app": usecase.RelatedDemoApp,
+		"published_at":     usecase.PublishedAt,
+		"created_at":       usecase.CreatedAt,
+		"updated_at":       usecase.UpdatedAt,
 	}
 }

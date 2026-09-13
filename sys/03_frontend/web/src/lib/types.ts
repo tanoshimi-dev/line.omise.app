@@ -111,3 +111,19 @@ export interface MyProgressCourse {
 export interface MyProgress {
   courses: MyProgressCourse[]
 }
+
+// related_demo_app matches a DemoApp.id from src/data/demoApps.ts (dev-plan-10
+// migration 006) — empty string when no mini-app is associated.
+export interface Usecase {
+  id: string
+  slug: string
+  client_name: string
+  title: string
+  body: string
+  status: 'draft' | 'published'
+  thumbnail_url: string
+  related_demo_app: string
+  published_at: string | null
+  created_at: string
+  updated_at: string
+}

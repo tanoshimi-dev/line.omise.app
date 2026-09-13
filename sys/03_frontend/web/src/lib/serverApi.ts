@@ -9,6 +9,14 @@ import 'server-only'
 // makes importing this from a Client Component a build error, so the two
 // never get mixed up.
 //
+// Always cache: 'no-store' (always dynamic, always fresh) rather than ISR
+// with `next.revalidate`: ISR makes Next.js attempt to statically prerender
+// the page at `next build` time, but this project's Dockerfile builds
+// line-web without line-api reachable (no docker-compose network exists
+// during an isolated image build) — that prerender attempt fails the build.
+// dev-plan-10-frontend-usecase hit this concretely and reverted; see that
+// step's result doc.
+//
 // Only public (no-auth) content endpoints are called this way. Anything
 // user-specific (progress, exam submission, lesson completion) goes through
 // the browser-side src/lib/api.ts instead, which carries the session cookie

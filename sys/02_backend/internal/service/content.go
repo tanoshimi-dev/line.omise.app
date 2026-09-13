@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	ErrInvalidStatus   = errors.New("status must be draft or published")
-	ErrInvalidCategory = errors.New("category must be line-operation or ai")
-	ErrDuplicateSlug   = errors.New("slug already in use")
+	ErrInvalidStatus         = errors.New("status must be draft or published")
+	ErrInvalidCategory       = errors.New("category must be line-operation or ai")
+	ErrInvalidRelatedDemoApp = errors.New("related_demo_app must be membership, salon-reservation, sweets-shop, or empty")
+	ErrDuplicateSlug         = errors.New("slug already in use")
 )
 
 // ValidateStatus checks a content status against the schema's CHECK
@@ -30,6 +31,18 @@ func ValidateArticleCategory(category string) error {
 		return ErrInvalidCategory
 	}
 	return nil
+}
+
+// ValidateRelatedDemoApp checks a usecase's related_demo_app against the
+// schema's CHECK constraint (dev-plan-10-frontend-usecase migration 006).
+// Empty is valid — the association is optional.
+func ValidateRelatedDemoApp(relatedDemoApp string) error {
+	switch relatedDemoApp {
+	case "", "membership", "salon-reservation", "sweets-shop":
+		return nil
+	default:
+		return ErrInvalidRelatedDemoApp
+	}
 }
 
 // AsDuplicateSlug returns ErrDuplicateSlug if err is a unique-constraint
