@@ -17,12 +17,12 @@ Admin/Reader ロール）・試験（exam）・学習進捗（progress）に必�
 
 ## タスク
 
-### 2.1 DB エンジン選定（未決定事項 — ここで決定する）
+### 2.1 DB エンジン選定（決定済み）
 
-- [ ] DB エンジンを決定する。候補:
-  - **PostgreSQL**（推奨 — `hannari.dev/cloudflare/log` と揃えられ、運用ノウハウを共有できる）
-  - MySQL / SQLite（小規模なら検討可）
-- [ ] マイグレーションツールを決定（例: `golang-migrate`）
+- [x] DB エンジン: **PostgreSQL** — `hannari.dev/cloudflare/log` と揃え、運用ノウハウ（バックアップ・監視など）を共有する
+- [x] マイグレーションツール: **`golang-migrate`**（`sys/02_backend` は Go/Gin のため親和性が高く、`.up.sql`/`.down.sql` ペア運用は本プランの構成とも一致）
+- [ ] `sys/01_infra/docker-compose.yml` に `postgres` サービスを追加（[dev-plan-01-infra-docker-result.md](dev-plan-01-infra-docker-result.md) の「プラン未実施」で保留されていた項目）
+- [ ] `sys/02_backend/.env.example` の `DATABASE_URL`（仮値）を PostgreSQL の接続文字列形式に更新
 
 ### 2.2 ユーザー・認証
 

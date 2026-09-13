@@ -81,7 +81,7 @@ Deploy 1                              12 完了 ─→ 13 本番デプロイ
 
 ## 未決定事項（各 Step 内で決定・記録する）
 
-- DB エンジン（Step 02 で決定 — 候補: PostgreSQL、hannari.dev/log と揃える）
+- ~~DB エンジン（Step 02 で決定 — 候補: PostgreSQL、hannari.dev/log と揃える）~~ → **決定済み: PostgreSQL + `golang-migrate`**（[dev-plan-02-database.md](dev-plan-02-database.md) 2.1）
 - セッション方式（Cookie セッション vs JWT、Step 04 で決定）
 - Admin 権限の付与方法（許可リスト方式 or DB フラグ手動設定、Step 04 で決定）
 - コンテンツのデータモデル詳細（講座/レッスン/記事/事例/試験、Step 05〜06 で決定）
