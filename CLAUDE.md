@@ -12,13 +12,15 @@ This repo follows a strict plan-then-implement flow. **Do not write or change an
 
 ## What this is
 
-Landing page (`line.omise.app`) for "はんなりdev", advertising three LINE mini-app demos (membership management, salon reservation, sweets shop). The demo apps themselves live in sibling repos, not here:
+`line.omise.app`, はんなりdev's LINE mini-app platform: three LINE mini-apps (membership management, salon reservation, sweets shop) authenticated via LINE Login and Google OAuth.
+
+**Pivot in progress**: the repo currently holds only a static marketing landing page (see Architecture below — React + Vite, no auth, no backend). It is transitioning into the real application: Next.js frontend + Go Gin backend, with LINE Login / Google OAuth authentication. See `README.md` for the target architecture. That target is *not yet implemented* — everything in the Architecture section below still describes what actually exists in this repo today. New work toward the pivot goes through the dev-plan flow above, same as any other change.
+
+The demo apps' current (pre-pivot) sibling repos, referenced by the existing landing page content:
 
 - `line-apps-demo/membership`
 - `line-apps-demo/salon-reservation`
 - `line-apps-demo/sweets-shop`
-
-The site is pure marketing content (hero, demo showcase, features, contact) — no auth, no API calls, no backend integration on this page itself.
 
 ## Repo layout
 
