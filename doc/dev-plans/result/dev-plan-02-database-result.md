@@ -58,7 +58,10 @@ Admin 権限の付与方法（2.2 の未決定事項）は引き続き Step 04 �
 
 ## プラン外で追加対応したこと
 
-- なし（プランに記載のタスクのみ実施）
+- `sys/01_infra/docker-compose.yml` に `adminer`（`adminer:4`）サービスを追加。
+  DB テーブルを GUI で確認したいというユーザー要望への対応（開発用途のみ、`docker-compose.prod.yml` には追加していない —
+  認証なしの DB 管理 UI を本番で公開しない判断）。`http://localhost:8081` で接続、
+  System: PostgreSQL / Server: `postgres` / User: `line_omise` / Password: `line_omise` / DB: `line_omise_app`
 
 ## プラン未実施（意図的にスキップ / 後続 Step 待ち）
 
