@@ -42,10 +42,10 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 | 01 | [dev-plan-01-infra-docker.md](dev-plan-01-infra-docker.md) | Docker Compose・共有 Traefik への相乗り・Cloudflare DNS | ✅ 完了（[結果](result/dev-plan-01-infra-docker-result.md)）— Cloudflare DNS 登録のみユーザー側対応待ち |
 | 02 | [dev-plan-02-database.md](dev-plan-02-database.md) | DB 選定・スキーマ（ユーザー・コンテンツ・試験・進捗）・マイグレーション | ✅ 完了（[結果](result/dev-plan-02-database-result.md)）— PostgreSQL + golang-migrate、`docker-compose.yml` に `postgres`/`adminer` サービス追加済み |
 | 03 | [dev-plan-03-backend-base.md](dev-plan-03-backend-base.md) | Go プロジェクト初期化・Gin セットアップ | ✅ 完了（[結果](result/dev-plan-03-backend-base-result.md)）— `/health` の DB 到達性チェックは Step 02 で実ドライバ（pgx）に置き換え済み |
-| 04 | [dev-plan-04-auth.md](dev-plan-04-auth.md) | LINE Login / Google OAuth 統合・Admin/Reader ロール | 🟡 コード実装・検証済み（[結果](result/dev-plan-04-auth-result.md)）— LINE Developers / Google Cloud Console でのチャネル作成（4.1）はユーザー側対応待ちのため実ログイン未検証 |
+| 04 | [dev-plan-04-auth.md](dev-plan-04-auth.md) | LINE Login / Google OAuth 統合・Admin/Reader ロール | ✅ 完了（[結果](result/dev-plan-04-auth-result.md)）— LINE / Google 両方の実ログインをユーザーが確認済み |
 | 05 | [dev-plan-05-content-api.md](dev-plan-05-content-api.md) | コンテンツ CMS API（講座・レッスン・記事・事例、Admin CRUD + 公開 GET） | ⬜ 未着手 |
 | 06 | [dev-plan-06-exam-progress-api.md](dev-plan-06-exam-progress-api.md) | 試験（exam）API・学習進捗（progress）保存 API | ⬜ 未着手 |
-| 07 | [dev-plan-07-frontend-base.md](dev-plan-07-frontend-base.md) | Next.js プロジェクト初期化・レイアウト・認証クライアント統合 | ✅ 完了（[結果](result/dev-plan-07-frontend-base-result.md)）— ログイン導線は実装済みだが Step 04 待ちで実ログイン未検証 |
+| 07 | [dev-plan-07-frontend-base.md](dev-plan-07-frontend-base.md) | Next.js プロジェクト初期化・レイアウト・認証クライアント統合 | ✅ 完了（[結果](result/dev-plan-07-frontend-base-result.md)）— ログイン導線は Step 04 の実ログイン確認で動作確認済み |
 | 08 | [dev-plan-08-frontend-lp.md](dev-plan-08-frontend-lp.md) | 既存 LP（React+Vite）の Next.js への移行 | ⬜ 未着手 |
 | 09 | [dev-plan-09-frontend-learn.md](dev-plan-09-frontend-learn.md) | `/learn/` 講座・記事一覧/詳細・試験・進捗表示 UI | ⬜ 未着手 |
 | 10 | [dev-plan-10-frontend-usecase.md](dev-plan-10-frontend-usecase.md) | `/usecase/` 一覧・詳細 UI | ⬜ 未着手 |
@@ -53,10 +53,8 @@ LINE Login / Google OAuth 認証）へ移行するための開発計画。
 | 12 | [dev-plan-12-test-phase1.md](dev-plan-12-test-phase1.md) | Go テスト・Next.js テスト（Vitest）・Playwright E2E | ⬜ 未着手 |
 | 13 | [dev-plan-13-deploy-phase1.md](dev-plan-13-deploy-phase1.md) | 本番 VPS デプロイ・Traefik/Cloudflare 登録・稼働確認 | ⬜ 未着手 |
 
-**次の Step:** ユーザー側で LINE Developers / Google Cloud Console の設定（dev-plan-04-auth.md 4.1）を行い、
-`sys/02_backend/.env` に実値を設定して実ログインを確認。並行してコードベースは
-`dev-plan-05-content-api.md` / `dev-plan-06-exam-progress-api.md`（コンテンツ CMS・試験/進捗 API）に着手可能
-（`internal/middleware` の Reader/Admin 認証・`internal/repository` の型が揃っている）。
+**次の Step:** 05（コンテンツ CMS API）/ 06（試験・進捗 API）— 01〜04 が完了し、
+認証（Reader/Admin）とスキーマが揃ったため着手可能。
 
 ## 依存関係
 

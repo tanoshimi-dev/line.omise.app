@@ -6,13 +6,20 @@
 
 ## 実施内容
 
-### 4.1 プロバイダー設定 — コード側の受け皿のみ実装、実際のコンソール作業はユーザー側対応が必要
+### 4.1 プロバイダー設定 — ユーザー側で完了・実ログイン確認済み
 
-LINE Developers コンソール / Google Cloud Console でのチャネル・OAuth クライアント作成は、
-本セッションの権限では実施できない（ユーザー自身のアカウントでの手動作業）。
-コード側は環境変数を読み込むだけの構成にしてあるので、実際に発行された値を
-`sys/02_backend/.env` に設定すればそのまま動く。必要な値とコールバック URL は
-`.env.example` に記載済み（開発用は `http://localhost:8080/auth/{line,google}/callback`）。
+LINE Developers コンソール / Google Cloud Console でのチャネル・OAuth クライアント作成は
+本セッションの権限では実施できないため（ユーザー自身のアカウントでの手動作業）、
+コード側は環境変数を読み込むだけの構成にして受け渡した。ユーザー側で以下を実施し、
+LINE・Google 両方のログインが実際に成功することを確認済み:
+
+- LINE Developers コンソールで LINE Login チャネルを作成、Channel ID / Secret を取得
+- Google Cloud Console で OAuth クライアントを作成
+  - 途中「Authorized redirect URIs」に開発用コールバック URL
+    （`http://localhost:8080/auth/google/callback`）が未登録で `redirect_uri_mismatch`
+    が発生したが、登録後に解消
+- 発行された値を `sys/02_backend/.env` の `LINE_LOGIN_CHANNEL_ID` / `LINE_LOGIN_CHANNEL_SECRET` /
+  `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` に設定
 
 ### 4.2 認可コードフロー
 
@@ -99,13 +106,7 @@ Callback → state 照合 → コード交換 → user upsert → session 発行
 
 ## プラン未実施（意図的にスキップ / 後続 Step 待ち）
 
-- **4.1 の実コンソール作業**（LINE Developers チャネル作成・Google Cloud OAuth クライアント作成）
-  — ユーザー自身での対応が必要。作成後、発行された値を `sys/02_backend/.env` の
-  `LINE_LOGIN_CHANNEL_ID` / `LINE_LOGIN_CHANNEL_SECRET` / `GOOGLE_OAUTH_CLIENT_ID` /
-  `GOOGLE_OAUTH_CLIENT_SECRET` に設定すれば動作する
-- 実際の LINE/Google ログインの E2E 動作確認 — 上記が未完了のため未実施
-  （代わりに、DB へ直接テスト用セッションを投入してセッション検証・`/auth/me`・
-  `RequireAdmin` の 401/403/200 分岐は確認済み。詳細は検証セクション参照）
+なし。4.1〜4.7 すべて完了・実ログインで確認済み。
 
 ---
 
@@ -134,6 +135,11 @@ Callback → state 照合 → コード交換 → user upsert → session 発行
     確認後にコードとDBの両方から削除済み（コミット対象なし）
 - 検証中に使用した一時テストデータ（`test-session-id-*`, `dev-reader` ユーザー等）はすべて
   DB から削除済み。`docker compose` スタック自体はユーザーが Adminer で確認作業中のため稼働継続
+- **実ログイン E2E 確認（ユーザー実施）**: LINE ログイン・Google ログインの両方をブラウザから
+  実際に実行し、成功を確認。`users` テーブルに実プロバイダー経由のレコードが作成されたことを確認済み
+  （`provider=line, role=reader` 1件・`provider=google, role=reader` 1件 — 事前に投入していた
+  `provider=google, role=admin` の seed ユーザーとは別に新規作成されている。ログインしたメールアドレスは
+  `ADMIN_EMAILS` と一致しなかったため、想定通り `role=reader` で登録された）
 
 ---
 
@@ -141,14 +147,14 @@ Callback → state 照合 → コード交換 → user upsert → session 発行
 
 | 完了条件（プラン記載） | 状態 |
 |---|---|
-| LINE / Google それぞれでログインでき、`users` テーブルにレコードが作成される | △ コードは実装・検証済みだが、実コンソール（4.1）未設定のため実ログインは未検証。手動投入したセッションでの後続フロー（`/auth/me` 等）は確認済み |
-| `ADMIN_EMAILS` に一致するユーザーが `role = admin` になる | ✅（ロジック実装・`UpsertByProvider` の昇格条件を確認。実ログイン経由の確認は 4.1 待ち） |
+| LINE / Google それぞれでログインでき、`users` テーブルにレコードが作成される | ✅ ユーザーが実ログインで確認（両プロバイダーとも `users` に新規レコード作成を確認） |
+| `ADMIN_EMAILS` に一致するユーザーが `role = admin` になる | ✅（ロジック実装済み。実ログインしたアカウントは `ADMIN_EMAILS` 対象外だったため `role=reader` で登録され、これも想定通りの動作として確認） |
 | Admin 限定エンドポイントに Reader ユーザーがアクセスすると `403` が返る | ✅（一時検証ルートで確認） |
 | 未ログインで保護エンドポイントにアクセスすると `401` が返る | ✅（`/auth/me` で確認） |
 
+**Step 04 完了。**
+
 ## 次のステップ
 
-- ユーザー側: LINE Developers / Google Cloud Console でのチャネル・クライアント作成、
-  `sys/02_backend/.env` への実値設定 → 実ログイン E2E 確認
 - `dev-plan-05-content-api.md` / `dev-plan-06-exam-progress-api.md`
   （`internal/repository`・`internal/middleware`（Reader/Admin）を使ったコンテンツ CRUD・試験/進捗 API）
