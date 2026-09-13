@@ -29,6 +29,14 @@ func Connect(ctx context.Context, databaseURL string) (*Pool, error) {
 	return &Pool{pool: pool}, nil
 }
 
+// NewPoolForTest wraps an already-connected pgxpool.Pool (e.g. one pointed
+// at a testcontainers Postgres instance) so tests can build a *server.New
+// router without going through Connect's DSN-based startup path
+// (dev-plan-12-test-phase1 12.1).
+func NewPoolForTest(pool *pgxpool.Pool) *Pool {
+	return &Pool{pool: pool}
+}
+
 // Configured reports whether a DATABASE_URL was provided.
 func (p *Pool) Configured() bool {
 	return p != nil && p.pool != nil
