@@ -21,11 +21,11 @@ LINE公式アカウント運用の知識を確認できる**クイズ（練習�
 
 ## 開発計画ファイル一覧
 
-進捗ステータス最終更新: 2026-09-15
+進捗ステータス最終更新: 2026-09-15（Step 2-1）
 
 | # | ファイル | 内容 | 状態 |
 |---|---|---|---|
-| 2-1 | [dev-plan-2-1-db-migration.md](dev-plan-2-1-db-migration.md) | スキーマ設計・マイグレーション（`quizzes`/`quiz_questions`/`quiz_choices`/`user_quiz_attempts`/`user_quiz_answers`） | ⬜ 未着手 |
+| 2-1 | [dev-plan-2-1-db-migration.md](dev-plan-2-1-db-migration.md) | スキーマ設計・マイグレーション（`quizzes`/`quiz_questions`/`quiz_choices`/`user_quiz_attempts`/`user_quiz_answers`） | ✅ 完了（[結果](result/dev-plan-2-1-db-migration-result.md)）— サンプルデータのシード投入は Step 2-2 以降に先送り |
 | 2-2 | [dev-plan-2-2-admin-api.md](dev-plan-2-2-admin-api.md) | クイズ／検定・設問・選択肢の管理 API（Admin CRUD） | ⬜ 未着手 |
 | 2-3 | [dev-plan-2-3-answer-scoring-api.md](dev-plan-2-3-answer-scoring-api.md) | 解答・採点 API（練習モード即時採点／検定モード一括採点）・受験履歴・進捗 API | ⬜ 未着手 |
 | 2-4 | [dev-plan-2-4-frontend-quiz-ui.md](dev-plan-2-4-frontend-quiz-ui.md) | `/learn/quiz/` 練習モード・検定モード受験 UI | ⬜ 未着手 |
@@ -33,7 +33,7 @@ LINE公式アカウント運用の知識を確認できる**クイズ（練習�
 | 2-6 | [dev-plan-2-6-test.md](dev-plan-2-6-test.md) | Go / Next.js / E2E テスト | ⬜ 未着手 |
 | 2-7 | [dev-plan-2-7-deploy-production.md](dev-plan-2-7-deploy-production.md) | 本番マイグレーション適用・本番デプロイ | ⬜ 未着手 |
 
-**次の Step:** 2-1（DB マイグレーション）。
+**次の Step:** 2-2（Admin API）— Step 2-1（DB マイグレーション）完了。
 
 ## 依存関係
 
