@@ -27,6 +27,8 @@ var (
 	pool     *pgxpool.Pool
 	initErr  error
 	dbTables = []string{
+		"user_quiz_answers", "user_quiz_attempts",
+		"quiz_choices", "quiz_questions", "quizzes",
 		"user_exam_results", "user_lesson_progress",
 		"exam_choices", "exam_questions", "exams",
 		"article_tags", "tags", "articles",

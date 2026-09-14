@@ -139,6 +139,40 @@ export interface MyProgress {
   courses: MyProgressCourse[]
 }
 
+// Quiz (practice mode) / exam (exam mode) content — dev-plan-2-2-admin-api.
+// Both are `quizzes` rows distinguished by `mode`; unrelated to the Phase 1
+// lesson-tied Exam/AdminExam types above (see that plan's terminology note).
+export type QuizMode = 'practice' | 'exam'
+
+export interface AdminQuizChoice {
+  id: string
+  choice_text: string
+  is_correct: boolean
+  sort_order: number
+}
+
+export interface AdminQuizQuestion {
+  id: string
+  quiz_id: string
+  question_text: string
+  allow_multiple: boolean
+  explanation: string
+  reference_url: string
+  sort_order: number
+  choices: AdminQuizChoice[]
+}
+
+export interface AdminQuiz {
+  id: string
+  slug: string
+  title: string
+  description: string
+  mode: QuizMode
+  passing_score: number | null
+  published: boolean
+  questions?: AdminQuizQuestion[]
+}
+
 // related_demo_app matches a DemoApp.id from src/data/demoApps.ts (dev-plan-10
 // migration 006) — empty string when no mini-app is associated.
 export interface Usecase {

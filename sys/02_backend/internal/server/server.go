@@ -25,6 +25,7 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	usecaseRepo := repository.NewUsecaseRepository(dbPool.DB())
 	examRepo := repository.NewExamRepository(dbPool.DB())
 	progressRepo := repository.NewProgressRepository(dbPool.DB())
+	quizRepo := repository.NewQuizRepository(dbPool.DB())
 
 	authHandler := &handler.AuthHandler{
 		Providers: map[string]authprovider.Provider{
@@ -46,6 +47,7 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	usecaseHandler := &handler.UsecaseHandler{Usecases: usecaseRepo}
 	examHandler := &handler.ExamHandler{Exams: examRepo, Courses: courseRepo, Progress: progressRepo}
 	progressHandler := &handler.ProgressHandler{Courses: courseRepo, Exams: examRepo, Progress: progressRepo}
+	adminQuizHandler := &handler.AdminQuizHandler{Quizzes: quizRepo}
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
@@ -100,6 +102,14 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	admin.POST("/exams/:examId/questions", examHandler.AdminCreateQuestion)
 	admin.PUT("/questions/:id", examHandler.AdminUpdateQuestion)
 	admin.DELETE("/questions/:id", examHandler.AdminDeleteQuestion)
+	admin.GET("/quizzes", adminQuizHandler.AdminListQuizzes)
+	admin.GET("/quizzes/:id", adminQuizHandler.AdminGetQuiz)
+	admin.POST("/quizzes", adminQuizHandler.AdminCreateQuiz)
+	admin.PUT("/quizzes/:id", adminQuizHandler.AdminUpdateQuiz)
+	admin.DELETE("/quizzes/:id", adminQuizHandler.AdminDeleteQuiz)
+	admin.POST("/quizzes/:quizId/questions", adminQuizHandler.AdminCreateQuestion)
+	admin.PUT("/quiz-questions/:id", adminQuizHandler.AdminUpdateQuestion)
+	admin.DELETE("/quiz-questions/:id", adminQuizHandler.AdminDeleteQuestion)
 
 	// Exam/progress endpoints — Reader login required (dev-plan-06 6.2/6.3).
 	api.GET("/lessons/:lessonId/exam", requireReader, examHandler.GetExam)
