@@ -11,10 +11,13 @@ import { loginUrl } from '@/lib/api'
 // マーケティング講座 → 運用・設定 → AI活用事例 (flagship course first, then the
 // practical how-to category, then the smaller AI use-case category), followed
 // by 導入事例.
+// クイズ・検定 was appended (dev-plan-2-4-frontend-quiz-ui) without
+// reordering the original three.
 const learnLinks = [
   { href: '/learn/line-marketing', label: 'マーケティング講座' },
   { href: '/learn/line-operation', label: '運用・設定' },
   { href: '/learn/ai', label: 'AI活用事例' },
+  { href: '/learn/quiz', label: 'クイズ・検定' },
 ]
 
 export default function Header() {

@@ -173,6 +173,75 @@ export interface AdminQuiz {
   questions?: AdminQuizQuestion[]
 }
 
+// Reader/public-facing quiz shapes (dev-plan-2-3/2-4) — never carry
+// is_correct/explanation/reference_url until after answering/submitting,
+// mirroring the Exam/AdminExam split above.
+export interface QuizListItem {
+  id: string
+  slug: string
+  title: string
+  description: string
+  mode: QuizMode
+  passing_score: number | null
+}
+
+export interface QuizChoice {
+  id: string
+  choice_text: string
+  sort_order: number
+}
+
+export interface QuizQuestion {
+  id: string
+  question_text: string
+  allow_multiple: boolean
+  sort_order: number
+  choices: QuizChoice[]
+}
+
+export interface Quiz {
+  id: string
+  slug: string
+  title: string
+  description: string
+  mode: QuizMode
+  passing_score: number | null
+  questions: QuizQuestion[]
+}
+
+// Response to POST /api/quiz-questions/:id/answer (practice mode) — reveals
+// the answer for this one question only, after it's been answered.
+export interface QuizAnswerResult {
+  question_id: string
+  is_correct: boolean
+  selected_choice_ids: string[]
+  correct_choice_ids: string[]
+  explanation: string
+  reference_url: string
+}
+
+export interface QuizSubmitQuestionResult {
+  question_id: string
+  question_text: string
+  selected_choice_ids: string[]
+  correct_choice_ids: string[]
+  is_correct: boolean
+  explanation: string
+  reference_url: string
+}
+
+// Response to POST /api/quizzes/:slug/submit (exam mode). passed is null
+// when the quiz has no passing_score configured; attempt_id is null when
+// the caller wasn't logged in (nothing was saved).
+export interface QuizSubmitResult {
+  quiz_id: string
+  score: number
+  total_questions: number
+  passed: boolean | null
+  questions: QuizSubmitQuestionResult[]
+  attempt_id: string | null
+}
+
 // related_demo_app matches a DemoApp.id from src/data/demoApps.ts (dev-plan-10
 // migration 006) — empty string when no mini-app is associated.
 export interface Usecase {

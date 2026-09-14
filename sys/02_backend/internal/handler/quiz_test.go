@@ -94,6 +94,31 @@ func mustParseInt64(t *testing.T, s string) int64 {
 	return n
 }
 
+func TestListQuizzes_ExcludesDraft(t *testing.T) {
+	pool := testutil.TestDB(t)
+	t.Cleanup(func() { testutil.TruncateAll(t, pool) })
+	router := testutil.NewRouter(t, pool)
+	admin := testutil.CreateUser(t, pool, "admin")
+	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
+	createPublishedQuiz(t, router, adminCookie, "listed-quiz", "practice")
+	testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", adminCookie,
+		mustJSON(t, map[string]any{"slug": "draft-listed-quiz", "title": "Draft", "mode": "practice", "published": false}))
+
+	rec := testutil.DoRequest(t, router, http.MethodGet, "/api/quizzes", "", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /api/quizzes = %d, want 200: %s", rec.Code, rec.Body.String())
+	}
+	var body struct {
+		Quizzes []map[string]any `json:"quizzes"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if len(body.Quizzes) != 1 || body.Quizzes[0]["slug"] != "listed-quiz" {
+		t.Errorf("public quiz list = %+v, want only the published quiz", body.Quizzes)
+	}
+}
+
 func TestGetQuiz_PublicResponseHidesAnswerAndExplanation(t *testing.T) {
 	pool := testutil.TestDB(t)
 	t.Cleanup(func() { testutil.TruncateAll(t, pool) })

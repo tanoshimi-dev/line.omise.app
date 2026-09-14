@@ -74,6 +74,7 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	api.GET("/articles/:category/:slug", articleHandler.GetArticle)
 	api.GET("/usecases", usecaseHandler.ListUsecases)
 	api.GET("/usecases/:slug", usecaseHandler.GetUsecase)
+	api.GET("/quizzes", quizHandler.ListQuizzes)
 	api.GET("/quizzes/:slug", quizHandler.GetQuiz)
 
 	// Admin content API — write access requires role=admin. GET routes here

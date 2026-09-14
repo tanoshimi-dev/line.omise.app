@@ -21,19 +21,19 @@ LINE公式アカウント運用の知識を確認できる**クイズ（練習�
 
 ## 開発計画ファイル一覧
 
-進捗ステータス最終更新: 2026-09-15（Step 2-3）
+進捗ステータス最終更新: 2026-09-15（Step 2-4）
 
 | # | ファイル | 内容 | 状態 |
 |---|---|---|---|
 | 2-1 | [dev-plan-2-1-db-migration.md](dev-plan-2-1-db-migration.md) | スキーマ設計・マイグレーション（`quizzes`/`quiz_questions`/`quiz_choices`/`user_quiz_attempts`/`user_quiz_answers`） | ✅ 完了（[結果](result/dev-plan-2-1-db-migration-result.md)）— サンプルデータのシード投入は Step 2-2 以降に先送り |
 | 2-2 | [dev-plan-2-2-admin-api.md](dev-plan-2-2-admin-api.md) | クイズ／検定・設問・選択肢の管理 API（Admin CRUD） | ✅ 完了（[結果](result/dev-plan-2-2-admin-api-result.md)）— 管理画面での実ブラウザ確認（実ログイン）は未実施 |
 | 2-3 | [dev-plan-2-3-answer-scoring-api.md](dev-plan-2-3-answer-scoring-api.md) | 解答・採点 API（練習モード即時採点／検定モード一括採点）・受験履歴・進捗 API | ✅ 完了（[結果](result/dev-plan-2-3-answer-scoring-api-result.md)） |
-| 2-4 | [dev-plan-2-4-frontend-quiz-ui.md](dev-plan-2-4-frontend-quiz-ui.md) | `/learn/quiz/` 練習モード・検定モード受験 UI | ⬜ 未着手 |
+| 2-4 | [dev-plan-2-4-frontend-quiz-ui.md](dev-plan-2-4-frontend-quiz-ui.md) | `/learn/quiz/` 練習モード・検定モード受験 UI | ✅ 完了（[結果](result/dev-plan-2-4-frontend-quiz-ui-result.md)）— 公開一覧 API（`GET /api/quizzes`）を追加、実ブラウザで動作確認済み |
 | 2-5 | [dev-plan-2-5-frontend-mypage.md](dev-plan-2-5-frontend-mypage.md) | マイページ「受験履歴・進捗」セクション | ⬜ 未着手 |
 | 2-6 | [dev-plan-2-6-test.md](dev-plan-2-6-test.md) | Go / Next.js / E2E テスト | ⬜ 未着手 |
 | 2-7 | [dev-plan-2-7-deploy-production.md](dev-plan-2-7-deploy-production.md) | 本番マイグレーション適用・本番デプロイ | ⬜ 未着手 |
 
-**次の Step:** 2-4（フロントエンド: クイズ/検定受験 UI）— Step 2-3（解答・採点 API／受験履歴・進捗 API）完了。
+**次の Step:** 2-5（フロントエンド: マイページ受験履歴・進捗）— Step 2-4（クイズ/検定受験 UI）完了。
 
 ## 依存関係
 

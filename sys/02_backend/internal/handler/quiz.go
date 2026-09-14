@@ -37,6 +37,35 @@ type quizSubmitRequest struct {
 	Answers   []quizSubmitAnswerRequest `json:"answers"`
 }
 
+// ListQuizzes handles GET /api/quizzes — published quizzes/exams only, no
+// login required. Added in dev-plan-2-4 (2-4.1) for the /learn/quiz list
+// page; not part of dev-plan-2-3's endpoint list, but the same shape and
+// visibility rule as ListCourses/ListUsecases. No questions are included
+// here — use GET /api/quizzes/:slug for that.
+func (h *QuizHandler) ListQuizzes(c *gin.Context) {
+	quizzes, err := h.Quizzes.ListPublished(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	items := make([]gin.H, 0, len(quizzes))
+	for i := range quizzes {
+		items = append(items, quizListItemJSON(&quizzes[i]))
+	}
+	c.JSON(http.StatusOK, gin.H{"quizzes": items})
+}
+
+func quizListItemJSON(quiz *repository.Quiz) gin.H {
+	return gin.H{
+		"id":            strconv.FormatInt(quiz.ID, 10),
+		"slug":          quiz.Slug,
+		"title":         quiz.Title,
+		"description":   quiz.Description,
+		"mode":          quiz.Mode,
+		"passing_score": quiz.PassingScore,
+	}
+}
+
 // GetQuiz handles GET /api/quizzes/:slug — public, no login required. The
 // response never includes is_correct, explanation or reference_url
 // (dev-plan-2-3 2-3.1: no cheating).
