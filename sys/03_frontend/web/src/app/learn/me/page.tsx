@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth'
 import { api } from '@/lib/api'
 import LoginPrompt from '@/components/learn/LoginPrompt'
+import QuizProgressSection from '@/components/mypage/QuizProgressSection'
 import type { MyProgress } from '@/lib/types'
 
 export default function MyProgressPage() {
@@ -72,6 +73,8 @@ export default function MyProgressPage() {
           })}
         </ul>
       )}
+
+      {!authLoading && user && <QuizProgressSection />}
     </div>
   )
 }

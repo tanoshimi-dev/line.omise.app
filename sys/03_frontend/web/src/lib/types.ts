@@ -242,6 +242,78 @@ export interface QuizSubmitResult {
   attempt_id: string | null
 }
 
+// Reader mypage: quiz/exam history and progress (dev-plan-2-5-frontend-mypage).
+
+export interface QuizPracticeHistoryEntry {
+  question_id: string
+  question_text: string
+  selected_choice_ids: string[]
+  is_correct: boolean
+  answered_at: string
+}
+
+export interface QuizPracticeHistory {
+  quiz_id: string
+  history: QuizPracticeHistoryEntry[]
+}
+
+export interface QuizAttemptSummary {
+  id: string
+  score: number
+  total_questions: number
+  passed: boolean | null
+  started_at: string
+  submitted_at: string
+}
+
+export interface QuizAttemptsList {
+  quiz_id: string
+  attempts: QuizAttemptSummary[]
+}
+
+export interface QuizAttemptQuestionReview {
+  question_id: string
+  question_text: string
+  selected_choice_ids: string[]
+  correct_choice_ids: string[]
+  is_correct: boolean
+  explanation: string
+  reference_url: string
+}
+
+export interface QuizAttemptDetail extends QuizAttemptSummary {
+  questions: QuizAttemptQuestionReview[]
+}
+
+export interface QuizPracticeProgress {
+  quiz_id: string
+  slug: string
+  title: string
+  mode: 'practice'
+  total_questions: number
+  answered_count: number
+  correct_count: number
+}
+
+export interface QuizExamProgress {
+  quiz_id: string
+  slug: string
+  title: string
+  mode: 'exam'
+  total_questions: number
+  attempt_count: number
+  passing_score: number | null
+  best_score: number | null
+  latest_score: number | null
+  latest_passed: boolean | null
+}
+
+export type QuizProgressSummary = QuizPracticeProgress | QuizExamProgress
+
+export interface MyQuizzesProgress {
+  quizzes: QuizProgressSummary[]
+}
+
 // related_demo_app matches a DemoApp.id from src/data/demoApps.ts (dev-plan-10
 // migration 006) — empty string when no mini-app is associated.
 export interface Usecase {
