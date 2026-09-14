@@ -73,8 +73,23 @@ func RequireAdmin(sessions *repository.SessionRepository, users *repository.User
 	}
 }
 
-// CurrentUser returns the user attached by RequireReader/RequireAdmin, or
-// nil outside a protected route.
+// OptionalUser attaches the resolved user to the context if a valid session
+// cookie is present, but never aborts — for routes that behave differently
+// for logged-in vs. anonymous callers without requiring login (dev-plan-2-3
+// 2-3.2/2-3.3: quiz answers are saved only when the caller is logged in, but
+// anyone can answer).
+func OptionalUser(sessions *repository.SessionRepository, users *repository.UserRepository, sessionSecret string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if user := resolveUser(c, sessions, users, sessionSecret); user != nil {
+			c.Set(contextUserKey, user)
+		}
+		c.Next()
+	}
+}
+
+// CurrentUser returns the user attached by RequireReader/RequireAdmin/
+// OptionalUser, or nil outside a protected route or when OptionalUser found
+// no valid session.
 func CurrentUser(c *gin.Context) *repository.User {
 	v, ok := c.Get(contextUserKey)
 	if !ok {

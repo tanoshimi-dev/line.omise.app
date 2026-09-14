@@ -41,6 +41,7 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	}
 	requireReader := middleware.RequireReader(sessionRepo, userRepo, cfg.SessionSecret)
 	requireAdmin := middleware.RequireAdmin(sessionRepo, userRepo, cfg.SessionSecret)
+	optionalUser := middleware.OptionalUser(sessionRepo, userRepo, cfg.SessionSecret)
 
 	courseHandler := &handler.CourseHandler{Courses: courseRepo}
 	articleHandler := &handler.ArticleHandler{Articles: articleRepo}
@@ -48,6 +49,7 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	examHandler := &handler.ExamHandler{Exams: examRepo, Courses: courseRepo, Progress: progressRepo}
 	progressHandler := &handler.ProgressHandler{Courses: courseRepo, Exams: examRepo, Progress: progressRepo}
 	adminQuizHandler := &handler.AdminQuizHandler{Quizzes: quizRepo}
+	quizHandler := &handler.QuizHandler{Quizzes: quizRepo}
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
@@ -72,6 +74,7 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	api.GET("/articles/:category/:slug", articleHandler.GetArticle)
 	api.GET("/usecases", usecaseHandler.ListUsecases)
 	api.GET("/usecases/:slug", usecaseHandler.GetUsecase)
+	api.GET("/quizzes/:slug", quizHandler.GetQuiz)
 
 	// Admin content API — write access requires role=admin. GET routes here
 	// (dev-plan-11-frontend-admin) return drafts too, unlike the public GETs
@@ -117,6 +120,19 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	api.POST("/lessons/:lessonId/complete", requireReader, progressHandler.CompleteLesson)
 	api.GET("/courses/:slug/progress", requireReader, progressHandler.GetCourseProgress)
 	api.GET("/me/progress", requireReader, progressHandler.GetMyProgress)
+
+	// Quiz/exam answer+submit — anyone may answer/submit (dev-plan-2-3
+	// 2-3.2/2-3.3); optionalUser attaches the caller's identity when logged
+	// in so the handler can decide whether to persist the answer/attempt.
+	api.POST("/quiz-questions/:id/answer", optionalUser, quizHandler.AnswerQuestion)
+	api.POST("/quizzes/:slug/submit", optionalUser, quizHandler.SubmitQuiz)
+
+	// Quiz/exam history+progress — Reader login required (dev-plan-2-3 2-3.4).
+	api.GET("/me/quizzes/progress", requireReader, quizHandler.GetMyQuizzesProgress)
+	api.GET("/me/quizzes/:slug/history", requireReader, quizHandler.GetPracticeHistory)
+	api.GET("/me/quizzes/:slug/attempts", requireReader, quizHandler.ListAttempts)
+	api.GET("/me/quizzes/:slug/attempts/:attemptId", requireReader, quizHandler.GetAttempt)
+	api.GET("/me/quizzes/:slug/progress", requireReader, quizHandler.GetQuizProgress)
 
 	return router
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -89,6 +90,42 @@ func (r *QuizRepository) GetByID(ctx context.Context, id int64) (*Quiz, error) {
 	return scanQuiz(row)
 }
 
+// ListPublished returns published quizzes/exams ordered for display
+// (dev-plan-2-3 2-3.4's "GET /api/me/quizzes/progress" summary lists every
+// published quiz, mirroring CourseRepository.ListPublished).
+func (r *QuizRepository) ListPublished(ctx context.Context) ([]Quiz, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, slug, title, COALESCE(description, ''), mode, passing_score, published
+		FROM quizzes WHERE published = true
+		ORDER BY id
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var quizzes []Quiz
+	for rows.Next() {
+		q, err := scanQuiz(rows)
+		if err != nil {
+			return nil, err
+		}
+		quizzes = append(quizzes, *q)
+	}
+	return quizzes, rows.Err()
+}
+
+// GetPublishedBySlug returns a published quiz, or ErrNotFound if it doesn't
+// exist or isn't published (dev-plan-2-3 2-3.1 — draft quizzes aren't
+// reachable through the public API).
+func (r *QuizRepository) GetPublishedBySlug(ctx context.Context, slug string) (*Quiz, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT id, slug, title, COALESCE(description, ''), mode, passing_score, published
+		FROM quizzes WHERE slug = $1 AND published = true
+	`, slug)
+	return scanQuiz(row)
+}
+
 func (r *QuizRepository) Create(ctx context.Context, slug, title, description, mode string, passingScore *int, published bool) (*Quiz, error) {
 	row := r.db.QueryRow(ctx, `
 		INSERT INTO quizzes (slug, title, description, mode, passing_score, published)
@@ -139,6 +176,45 @@ func (r *QuizRepository) ListQuestions(ctx context.Context, quizID int64) ([]Qui
 		questions = append(questions, q)
 	}
 	return questions, rows.Err()
+}
+
+// GetQuestionByID returns a single question, for the practice-mode answer
+// endpoint (dev-plan-2-3 2-3.2) which is addressed by question id rather
+// than by quiz slug.
+func (r *QuizRepository) GetQuestionByID(ctx context.Context, id int64) (*QuizQuestion, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT id, quiz_id, question_text, allow_multiple, explanation, COALESCE(reference_url, ''), sort_order
+		FROM quiz_questions WHERE id = $1
+	`, id)
+	var q QuizQuestion
+	if err := row.Scan(&q.ID, &q.QuizID, &q.QuestionText, &q.AllowMultiple, &q.Explanation, &q.ReferenceURL, &q.SortOrder); err != nil {
+		return nil, wrapNotFound(err)
+	}
+	return &q, nil
+}
+
+// ListChoicesForQuestion returns one question's choices, for grading a
+// practice-mode answer (dev-plan-2-3 2-3.2).
+func (r *QuizRepository) ListChoicesForQuestion(ctx context.Context, questionID int64) ([]QuizChoice, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, question_id, choice_text, is_correct, sort_order
+		FROM quiz_choices WHERE question_id = $1
+		ORDER BY sort_order, id
+	`, questionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var choices []QuizChoice
+	for rows.Next() {
+		var ch QuizChoice
+		if err := rows.Scan(&ch.ID, &ch.QuestionID, &ch.ChoiceText, &ch.IsCorrect, &ch.SortOrder); err != nil {
+			return nil, err
+		}
+		choices = append(choices, ch)
+	}
+	return choices, rows.Err()
 }
 
 // ListChoicesForQuiz returns every choice for every question in a quiz, in
@@ -279,4 +355,149 @@ func nullableString(s string) *string {
 		return nil
 	}
 	return &s
+}
+
+// UserQuizAttempt mirrors `user_quiz_attempts` — one exam-mode submission
+// (dev-plan-2-1-db-migration). Passed is nil when the quiz has no
+// passing_score set.
+type UserQuizAttempt struct {
+	ID             int64
+	UserID         int64
+	QuizID         int64
+	Score          int
+	TotalQuestions int
+	Passed         *bool
+	StartedAt      time.Time
+	SubmittedAt    time.Time
+}
+
+// UserQuizAnswer mirrors `user_quiz_answers`. AttemptID is nil for a
+// practice-mode answer and set for an exam-mode answer recorded as part of
+// a CreateAttempt submission.
+type UserQuizAnswer struct {
+	ID                int64
+	UserID            int64
+	QuestionID        int64
+	AttemptID         *int64
+	SelectedChoiceIDs []int64
+	IsCorrect         bool
+	AnsweredAt        time.Time
+}
+
+// SaveAnswer records one answered question — attemptID is nil for a
+// practice-mode answer (dev-plan-2-3 2-3.2), set for an exam-mode answer
+// belonging to a CreateAttempt submission (dev-plan-2-3 2-3.3).
+func (r *QuizRepository) SaveAnswer(ctx context.Context, userID, questionID int64, attemptID *int64, selectedChoiceIDs []int64, isCorrect bool) (*UserQuizAnswer, error) {
+	var a UserQuizAnswer
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO user_quiz_answers (user_id, question_id, attempt_id, selected_choice_ids, is_correct)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, user_id, question_id, attempt_id, selected_choice_ids, is_correct, answered_at
+	`, userID, questionID, attemptID, selectedChoiceIDs, isCorrect).
+		Scan(&a.ID, &a.UserID, &a.QuestionID, &a.AttemptID, &a.SelectedChoiceIDs, &a.IsCorrect, &a.AnsweredAt)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+// CreateAttempt inserts one exam-mode submission (dev-plan-2-3 2-3.3).
+func (r *QuizRepository) CreateAttempt(ctx context.Context, userID, quizID int64, score, totalQuestions int, passed *bool, startedAt time.Time) (*UserQuizAttempt, error) {
+	var a UserQuizAttempt
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO user_quiz_attempts (user_id, quiz_id, score, total_questions, passed, started_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, user_id, quiz_id, score, total_questions, passed, started_at, submitted_at
+	`, userID, quizID, score, totalQuestions, passed, startedAt).
+		Scan(&a.ID, &a.UserID, &a.QuizID, &a.Score, &a.TotalQuestions, &a.Passed, &a.StartedAt, &a.SubmittedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+// ListPracticeHistory returns a user's practice-mode answers (attempt_id
+// IS NULL) for a quiz, newest first (dev-plan-2-3 2-3.4).
+func (r *QuizRepository) ListPracticeHistory(ctx context.Context, userID, quizID int64) ([]UserQuizAnswer, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT a.id, a.user_id, a.question_id, a.attempt_id, a.selected_choice_ids, a.is_correct, a.answered_at
+		FROM user_quiz_answers a
+		JOIN quiz_questions q ON q.id = a.question_id
+		WHERE a.user_id = $1 AND q.quiz_id = $2 AND a.attempt_id IS NULL
+		ORDER BY a.answered_at DESC
+	`, userID, quizID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanQuizAnswers(rows)
+}
+
+// ListAttempts returns a user's exam-mode attempts for a quiz, newest first
+// (dev-plan-2-3 2-3.4).
+func (r *QuizRepository) ListAttempts(ctx context.Context, userID, quizID int64) ([]UserQuizAttempt, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, user_id, quiz_id, score, total_questions, passed, started_at, submitted_at
+		FROM user_quiz_attempts
+		WHERE user_id = $1 AND quiz_id = $2
+		ORDER BY submitted_at DESC
+	`, userID, quizID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var attempts []UserQuizAttempt
+	for rows.Next() {
+		var a UserQuizAttempt
+		if err := rows.Scan(&a.ID, &a.UserID, &a.QuizID, &a.Score, &a.TotalQuestions, &a.Passed, &a.StartedAt, &a.SubmittedAt); err != nil {
+			return nil, err
+		}
+		attempts = append(attempts, a)
+	}
+	return attempts, rows.Err()
+}
+
+// GetOwnAttempt returns attemptID, but only if it belongs to userID —
+// scoping ownership at the query level so a wrong owner gets the same
+// ErrNotFound as a nonexistent id, never leaking whether the attempt exists
+// (dev-plan-2-3 2-3.5).
+func (r *QuizRepository) GetOwnAttempt(ctx context.Context, attemptID, userID int64) (*UserQuizAttempt, error) {
+	row := r.db.QueryRow(ctx, `
+		SELECT id, user_id, quiz_id, score, total_questions, passed, started_at, submitted_at
+		FROM user_quiz_attempts WHERE id = $1 AND user_id = $2
+	`, attemptID, userID)
+	var a UserQuizAttempt
+	err := row.Scan(&a.ID, &a.UserID, &a.QuizID, &a.Score, &a.TotalQuestions, &a.Passed, &a.StartedAt, &a.SubmittedAt)
+	if err != nil {
+		return nil, wrapNotFound(err)
+	}
+	return &a, nil
+}
+
+// ListAnswersForAttempt returns every answer recorded as part of one
+// exam-mode attempt (dev-plan-2-3 2-3.4's attempt detail view).
+func (r *QuizRepository) ListAnswersForAttempt(ctx context.Context, attemptID int64) ([]UserQuizAnswer, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, user_id, question_id, attempt_id, selected_choice_ids, is_correct, answered_at
+		FROM user_quiz_answers WHERE attempt_id = $1
+		ORDER BY id
+	`, attemptID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanQuizAnswers(rows)
+}
+
+func scanQuizAnswers(rows pgx.Rows) ([]UserQuizAnswer, error) {
+	var answers []UserQuizAnswer
+	for rows.Next() {
+		var a UserQuizAnswer
+		if err := rows.Scan(&a.ID, &a.UserID, &a.QuestionID, &a.AttemptID, &a.SelectedChoiceIDs, &a.IsCorrect, &a.AnsweredAt); err != nil {
+			return nil, err
+		}
+		answers = append(answers, a)
+	}
+	return answers, rows.Err()
 }
