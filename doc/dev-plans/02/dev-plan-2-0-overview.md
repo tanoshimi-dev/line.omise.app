@@ -21,7 +21,7 @@ LINE公式アカウント運用の知識を確認できる**クイズ（練習�
 
 ## 開発計画ファイル一覧
 
-進捗ステータス最終更新: 2026-09-15（Step 2-5）
+進捗ステータス最終更新: 2026-09-15（Step 2-6）
 
 | # | ファイル | 内容 | 状態 |
 |---|---|---|---|
@@ -30,10 +30,10 @@ LINE公式アカウント運用の知識を確認できる**クイズ（練習�
 | 2-3 | [dev-plan-2-3-answer-scoring-api.md](dev-plan-2-3-answer-scoring-api.md) | 解答・採点 API（練習モード即時採点／検定モード一括採点）・受験履歴・進捗 API | ✅ 完了（[結果](result/dev-plan-2-3-answer-scoring-api-result.md)） |
 | 2-4 | [dev-plan-2-4-frontend-quiz-ui.md](dev-plan-2-4-frontend-quiz-ui.md) | `/learn/quiz/` 練習モード・検定モード受験 UI | ✅ 完了（[結果](result/dev-plan-2-4-frontend-quiz-ui-result.md)）— 公開一覧 API（`GET /api/quizzes`）を追加、実ブラウザで動作確認済み |
 | 2-5 | [dev-plan-2-5-frontend-mypage.md](dev-plan-2-5-frontend-mypage.md) | マイページ「受験履歴・進捗」セクション | ✅ 完了（[結果](result/dev-plan-2-5-frontend-mypage-result.md)）— ログイン必須のため実ブラウザ確認は未実施（コンポーネントテストで代替） |
-| 2-6 | [dev-plan-2-6-test.md](dev-plan-2-6-test.md) | Go / Next.js / E2E テスト | ⬜ 未着手 |
+| 2-6 | [dev-plan-2-6-test.md](dev-plan-2-6-test.md) | Go / Next.js / E2E テスト | ✅ 完了（[結果](result/dev-plan-2-6-test-result.md)）— Go 106件・Vitest 27件・Playwright 21件、全て成功 |
 | 2-7 | [dev-plan-2-7-deploy-production.md](dev-plan-2-7-deploy-production.md) | 本番マイグレーション適用・本番デプロイ | ⬜ 未着手 |
 
-**次の Step:** 2-6（テスト）— Step 2-5（マイページ受験履歴・進捗）完了。
+**次の Step:** 2-7（本番マイグレーション適用・本番デプロイ）— Step 2-6（テスト）完了。
 
 ## 依存関係
 

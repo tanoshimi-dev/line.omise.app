@@ -71,3 +71,61 @@ export async function withDB<T>(fn: (client: Client) => Promise<T>): Promise<T> 
     await client.end()
   }
 }
+
+// dev-plan-2-6-test 2-6.3: a published quiz + one two-choice question, seeded
+// directly (like seedUser above) rather than through the Admin UI — the one
+// test that exercises the Admin UI itself (quiz.spec.ts) creates its own
+// quiz that way instead of using this helper.
+export interface TestQuiz {
+  id: number
+  slug: string
+  title: string
+  questionId: number
+  correctChoiceId: number
+  wrongChoiceId: number
+  cleanup: () => Promise<void>
+}
+
+export async function seedQuiz(mode: 'practice' | 'exam', options?: { passingScore?: number }): Promise<TestQuiz> {
+  const client = new Client({ connectionString: process.env.DATABASE_URL })
+  await client.connect()
+
+  const slug = `e2e-quiz-${mode}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const title = `E2E ${mode} quiz ${Date.now()}`
+  const quizRes = await client.query<{ id: number }>(
+    `INSERT INTO quizzes (slug, title, mode, passing_score, published)
+     VALUES ($1, $2, $3, $4, true) RETURNING id`,
+    [slug, title, mode, options?.passingScore ?? null],
+  )
+  const quizId = quizRes.rows[0].id
+
+  const questionRes = await client.query<{ id: number }>(
+    `INSERT INTO quiz_questions (quiz_id, question_text, allow_multiple, explanation, sort_order)
+     VALUES ($1, '2+2?', false, 'Because 2+2=4.', 1) RETURNING id`,
+    [quizId],
+  )
+  const questionId = questionRes.rows[0].id
+
+  const correctRes = await client.query<{ id: number }>(
+    `INSERT INTO quiz_choices (question_id, choice_text, is_correct, sort_order) VALUES ($1, '4', true, 1) RETURNING id`,
+    [questionId],
+  )
+  const wrongRes = await client.query<{ id: number }>(
+    `INSERT INTO quiz_choices (question_id, choice_text, is_correct, sort_order) VALUES ($1, '5', false, 2) RETURNING id`,
+    [questionId],
+  )
+
+  return {
+    id: quizId,
+    slug,
+    title,
+    questionId,
+    correctChoiceId: correctRes.rows[0].id,
+    wrongChoiceId: wrongRes.rows[0].id,
+    cleanup: async () => {
+      // ON DELETE CASCADE removes the question/choices and any answers/attempts.
+      await client.query(`DELETE FROM quizzes WHERE id = $1`, [quizId])
+      await client.end()
+    },
+  }
+}
