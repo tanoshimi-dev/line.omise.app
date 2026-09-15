@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test'
 import { seedUser } from './helpers/db'
 import { loginAs } from './helpers/auth'
 
-// Usecases (not courses) are used here: /learn/'s top page is 3 fixed
-// category cards (README's declared structure), not a dynamic course list,
-// so creating a course wouldn't be visible from any public list page. The
-// /usecase/ list, by contrast, reflects any published usecase dynamically —
-// exactly what's needed to prove "admin creates → publishes → shows up
-// publicly" end to end.
+// Usecases are used here: /learn/'s top page is fixed category cards
+// (README's declared structure), not a dynamic list, so creating learn
+// content wouldn't be visible from any public list page. The /usecase/
+// list, by contrast, reflects any published usecase dynamically — exactly
+// what's needed to prove "admin creates → publishes → shows up publicly"
+// end to end.
 
 test('admin can create a draft, publish it, see it publicly, then delete it', async ({ page, context, baseURL }) => {
   const admin = await seedUser('admin')

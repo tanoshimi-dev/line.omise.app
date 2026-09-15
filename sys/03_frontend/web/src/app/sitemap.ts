@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { serverApi } from '@/lib/serverApi'
-import type { Article, Course, Usecase } from '@/lib/types'
+import type { Article, Usecase } from '@/lib/types'
 
 // Replaces the static public/sitemap.xml from dev-plan-08-frontend-lp — now
 // includes published /learn/ and /usecase/ content dynamically
@@ -16,24 +16,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     { url: BASE_URL, changeFrequency: 'monthly', priority: 1 },
     { url: `${BASE_URL}/learn`, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE_URL}/learn/line-marketing`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE_URL}/learn/line-operation`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE_URL}/learn/ai`, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${BASE_URL}/learn/line-yahoo-certification`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE_URL}/usecase`, changeFrequency: 'weekly', priority: 0.7 },
   ]
-
-  try {
-    const course = await serverApi.getOrNull<Course>('/api/courses/line-marketing')
-    for (const lesson of course?.lessons ?? []) {
-      entries.push({
-        url: `${BASE_URL}/learn/line-marketing/${lesson.slug}`,
-        changeFrequency: 'monthly',
-        priority: 0.6,
-      })
-    }
-  } catch {
-    // best-effort
-  }
 
   for (const category of ['line-operation', 'ai'] as const) {
     try {

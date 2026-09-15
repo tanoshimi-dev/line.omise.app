@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 const sections = [
-  { href: '/admin/courses', title: '講座・レッスン', description: '講座の作成・レッスンの追加・試験の管理' },
+  { href: '/admin/quizzes', title: 'LINEヤフー認定資格', description: 'クイズ・検定（LINEヤフー認定資格）の作成・設問の管理' },
   { href: '/admin/articles', title: '記事', description: 'LINE運用・設定 / 生成AI活用事例の記事管理' },
   { href: '/admin/usecases', title: '導入事例', description: '導入店舗インタビューの管理' },
 ]

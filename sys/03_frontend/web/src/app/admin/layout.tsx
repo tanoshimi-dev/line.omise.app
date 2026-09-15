@@ -9,10 +9,9 @@ export const metadata: Metadata = {
 
 const navLinks = [
   { href: '/admin', label: 'ダッシュボード' },
-  { href: '/admin/courses', label: '講座・レッスン' },
+  { href: '/admin/quizzes', label: 'LINEヤフー認定資格' },
   { href: '/admin/articles', label: '記事' },
   { href: '/admin/usecases', label: '導入事例' },
-  { href: '/admin/quizzes', label: 'クイズ・検定' },
 ]
 
 // The session cookie is scoped to the separate API origin, so the Next.js

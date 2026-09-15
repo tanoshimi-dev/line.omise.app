@@ -21,7 +21,7 @@ LINE公式アカウント運用の知識を確認できる**クイズ（練習�
 
 ## 開発計画ファイル一覧
 
-進捗ステータス最終更新: 2026-09-15（Step 2-6）
+進捗ステータス最終更新: 2026-09-16（Step 2-9）
 
 | # | ファイル | 内容 | 状態 |
 |---|---|---|---|
@@ -31,10 +31,10 @@ LINE公式アカウント運用の知識を確認できる**クイズ（練習�
 | 2-4 | [dev-plan-2-4-frontend-quiz-ui.md](dev-plan-2-4-frontend-quiz-ui.md) | `/learn/quiz/` 練習モード・検定モード受験 UI | ✅ 完了（[結果](result/dev-plan-2-4-frontend-quiz-ui-result.md)）— 公開一覧 API（`GET /api/quizzes`）を追加、実ブラウザで動作確認済み |
 | 2-5 | [dev-plan-2-5-frontend-mypage.md](dev-plan-2-5-frontend-mypage.md) | マイページ「受験履歴・進捗」セクション | ✅ 完了（[結果](result/dev-plan-2-5-frontend-mypage-result.md)）— ログイン必須のため実ブラウザ確認は未実施（コンポーネントテストで代替） |
 | 2-6 | [dev-plan-2-6-test.md](dev-plan-2-6-test.md) | Go / Next.js / E2E テスト | ✅ 完了（[結果](result/dev-plan-2-6-test-result.md)）— Go 106件・Vitest 27件・Playwright 21件、全て成功 |
-| 2-7 | [dev-plan-2-7-deploy-production.md](dev-plan-2-7-deploy-production.md) | 本番マイグレーション適用・本番デプロイ | 🚫 キャンセル（2-8 でクイズ機能自体を削除するため不要に） |
-| 2-8 | [dev-plan-2-8-line-yahoo-certification.md](dev-plan-2-8-line-yahoo-certification.md) | マーケティング講座・クイズ検定機能の廃止、「LINEヤフー 認定資格勉強」プレースホルダー追加 | ⬜ 未着手（計画のみ） |
+| 2-7 | [dev-plan-2-7-deploy-production.md](dev-plan-2-7-deploy-production.md) | 本番マイグレーション適用・本番デプロイ | ⬜ 未着手（クイズ機能は2-9で存続することになったため、改めて必要） |
+| 2-9 | [dev-plan-2-9-line-yahoo-certification.md](dev-plan-2-9-line-yahoo-certification.md) | マーケティング講座（Phase 1）の廃止、クイズ・検定（Phase 2）を「LINEヤフー 認定資格勉強」として再ブランディング | ✅ 完了（[結果](result/dev-plan-2-9-line-yahoo-certification-result.md)） — 当初「クイズ・検定も削除しプレースホルダーに差し替え」として実装したが、クイズ・検定機能は維持したまま再ブランディングする方針に訂正 |
 
-**次の Step:** 2-8（マーケティング講座・クイズ検定機能の廃止 / LINEヤフー 認定資格勉強の追加）— 未実装（プランのみ）。
+**次の Step:** 2-7（本番マイグレーション適用・本番デプロイ）— クイズ・検定機能（Phase 2）は「LINEヤフー 認定資格勉強」として存続するため、本番へ出す場合は改めて必要。
 
 ## 依存関係
 

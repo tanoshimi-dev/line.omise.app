@@ -6,18 +6,18 @@ import { siteContent } from '@/data/siteContent'
 import { useAuth } from '@/lib/auth'
 import { loginUrl } from '@/lib/api'
 
-// Nav order decided in dev-plan-07-frontend-base (task 7.3), resolving the
-// open question left in README.md: learning content is ordered
-// マーケティング講座 → 運用・設定 → AI活用事例 (flagship course first, then the
-// practical how-to category, then the smaller AI use-case category), followed
-// by 導入事例.
-// クイズ・検定 was appended (dev-plan-2-4-frontend-quiz-ui) without
-// reordering the original three.
+// Nav order originally decided in dev-plan-07-frontend-base (task 7.3):
+// 運用・設定 → AI活用事例 → LINEヤフー認定資格, followed by 導入事例.
+// マーケティング講座 was removed in dev-plan-2-9-line-yahoo-certification;
+// クイズ・検定 (dev-plan-2-4-frontend-quiz-ui) was kept but rebranded/moved
+// to /learn/line-yahoo-certification in that same step — same underlying
+// quiz engine, new public label. Reordered to put LINEヤフー認定資格 first,
+// matching /learn's card order, per user request
+// (dev-plan-learn-menu-reorder-center).
 const learnLinks = [
-  { href: '/learn/line-marketing', label: 'マーケティング講座' },
+  { href: '/learn/line-yahoo-certification', label: 'LINEヤフー認定資格' },
   { href: '/learn/line-operation', label: '運用・設定' },
   { href: '/learn/ai', label: 'AI活用事例' },
-  { href: '/learn/quiz', label: 'クイズ・検定' },
 ]
 
 export default function Header() {

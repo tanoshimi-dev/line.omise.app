@@ -16,7 +16,7 @@ export default function AdminQuizzesPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">クイズ・検定</h1>
+        <h1 className="text-2xl font-bold text-gray-900">LINEヤフー認定資格</h1>
         <Link href="/admin/quizzes/new" className="rounded-full bg-line-green px-4 py-2 text-sm font-semibold text-white hover:bg-line-green-dark">
           + 新規作成
         </Link>

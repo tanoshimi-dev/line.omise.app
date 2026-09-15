@@ -18,7 +18,7 @@ describe('api client', () => {
       new Response(JSON.stringify({ hello: 'world' }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
     )
 
-    const result = await api.get<{ hello: string }>('/api/courses')
+    const result = await api.get<{ hello: string }>('/api/articles')
 
     expect(result).toEqual({ hello: 'world' })
     const [, init] = vi.mocked(fetch).mock.calls[0]
@@ -28,7 +28,7 @@ describe('api client', () => {
   it('post() serializes the body and uses the POST method', async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ id: '1' }), { status: 201 }))
 
-    await api.post('/api/admin/courses', { slug: 'x', title: 'X' })
+    await api.post('/api/admin/articles', { slug: 'x', title: 'X' })
 
     const [, init] = vi.mocked(fetch).mock.calls[0]
     expect(init?.method).toBe('POST')
@@ -37,14 +37,14 @@ describe('api client', () => {
 
   it('put() uses the PUT method', async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({}), { status: 200 }))
-    await api.put('/api/admin/courses/1', { title: 'Updated' })
+    await api.put('/api/admin/articles/1', { title: 'Updated' })
     const [, init] = vi.mocked(fetch).mock.calls[0]
     expect(init?.method).toBe('PUT')
   })
 
   it('delete() uses the DELETE method and tolerates a 204 with no body', async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 204 }))
-    const result = await api.delete('/api/admin/courses/1')
+    const result = await api.delete('/api/admin/articles/1')
     expect(result).toBeUndefined()
     const [, init] = vi.mocked(fetch).mock.calls[0]
     expect(init?.method).toBe('DELETE')
@@ -53,7 +53,7 @@ describe('api client', () => {
   it('throws ApiError with the response status on a non-2xx response', async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ error: 'not found' }), { status: 404 }))
 
-    await expect(api.get('/api/courses/missing')).rejects.toMatchObject({
+    await expect(api.get('/api/articles/missing')).rejects.toMatchObject({
       name: 'ApiError',
       status: 404,
     })
@@ -62,7 +62,7 @@ describe('api client', () => {
   it('ApiError is an instanceof Error', async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 403 }))
     try {
-      await api.get('/api/admin/courses')
+      await api.get('/api/admin/articles')
       expect.unreachable('expected api.get to throw')
     } catch (err) {
       expect(err).toBeInstanceOf(ApiError)

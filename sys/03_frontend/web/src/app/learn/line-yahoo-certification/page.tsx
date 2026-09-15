@@ -4,8 +4,8 @@ import { serverApi } from '@/lib/serverApi'
 import type { QuizListItem } from '@/lib/types'
 
 export const metadata: Metadata = {
-  title: 'クイズ・検定',
-  description: 'LINE公式アカウント運用の知識を確認できるクイズ・検定です。',
+  title: 'LINEヤフー認定資格',
+  description: 'LINEヤフー認定資格の取得に向けたクイズ・検定形式の学習コンテンツです。',
 }
 
 export default async function QuizListPage() {
@@ -13,9 +13,9 @@ export default async function QuizListPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:py-24">
-      <h1 className="text-3xl font-bold text-gray-900">クイズ・検定</h1>
+      <h1 className="text-3xl font-bold text-gray-900">LINEヤフー認定資格</h1>
       <p className="mt-4 text-gray-600">
-        LINE公式アカウント運用の知識を確認できます。解答を始める前に、単発モード（1問ずつ解答・即採点）か検定モード（まとめて解答・最終スコア）を選べます。
+        LINEヤフー認定資格の取得に向けて、知識を確認できます。解答を始める前に、単発モード（1問ずつ解答・即採点）か検定モード（まとめて解答・最終スコア）を選べます。
       </p>
 
       {data.quizzes.length === 0 ? (
@@ -25,7 +25,7 @@ export default async function QuizListPage() {
           {data.quizzes.map((quiz) => (
             <Link
               key={quiz.id}
-              href={`/learn/quiz/${quiz.slug}`}
+              href={`/learn/line-yahoo-certification/${quiz.slug}`}
               className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
             >
               <h3 className="font-bold text-gray-900">{quiz.title}</h3>

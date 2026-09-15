@@ -18,25 +18,25 @@
 
 ## Content Site Map (`/learn/`, `/usecase/`)
 
-URL structure for SEO-driven content marketing (courses, how-to articles, client case studies) — supports the SEO goals in `sys/03_frontend/web/doc/seo-update-2026-02-16.md`. `/learn/` implemented in `dev-plan-09-frontend-learn`; `/usecase/` not yet implemented (`dev-plan-10-frontend-usecase`).
+URL structure for SEO-driven content marketing (how-to articles, client case studies) — supports the SEO goals in `sys/03_frontend/web/doc/seo-update-2026-02-16.md`. `/learn/` implemented in `dev-plan-09-frontend-learn`; `/usecase/` not yet implemented (`dev-plan-10-frontend-usecase`).
 
 | Path | Format | Contents |
 | --- | --- | --- |
 | `/learn/` | — | Learning content top |
-| `/learn/line-marketing/` | Course (ordered lessons) | LINEマーケティング講座 — self-paced marketing strategy course |
-| `/learn/line-marketing/{lesson}/` | — | Individual lesson |
 | `/learn/line-operation/` | Article list | LINE運用・設定 — practical how-to (rich menu setup, official account initial setup, Messaging API config, reply-mode usage, etc.) |
 | `/learn/line-operation/{article-slug}/` | — | e.g. `/learn/line-operation/rich-menu-setup/` |
 | `/learn/ai/` | Article list | 生成AI活用事例 |
 | `/learn/ai/{article}/` | — | Individual article |
+| `/learn/line-yahoo-certification/` | Quiz/exam list | LINEヤフー　認定資格勉強 — same クイズ・検定 engine from `dev-plan-2-4-frontend-quiz-ui`, rebranded/moved here in `dev-plan-2-9-line-yahoo-certification` (マーケティング講座 was removed instead) |
+| `/learn/line-yahoo-certification/{quiz-slug}/` | — | Individual quiz/exam |
 | `/usecase/` | — | 導入店舗インタビュー (client store interviews) |
 | `/usecase/{client}/` | — | Individual store interview |
 
-`line-marketing` is a structured course (sequential lessons); `line-operation` and `ai` are flat, on-demand article lists — same shape, so they share one pattern rather than the course pattern. If `line-operation` mixes setup articles (account creation, rich menu, reply settings) and operation articles (broadcast tips, step campaigns, friend-add tactics), keep the URL flat (`/learn/line-operation/{slug}/`) and filter by tag (`?tag=rich-menu` or `/learn/line-operation/tag/rich-menu/`) instead of adding directory levels.
+`line-operation` and `ai` are flat, on-demand article lists sharing one pattern. If `line-operation` mixes setup articles (account creation, rich menu, reply settings) and operation articles (broadcast tips, step campaigns, friend-add tactics), keep the URL flat (`/learn/line-operation/{slug}/`) and filter by tag (`?tag=rich-menu` or `/learn/line-operation/tag/rich-menu/`) instead of adding directory levels.
 
 Category name decided (`dev-plan-09-frontend-learn`): **`line-operation`** — already committed to by the `articles.category` CHECK constraint since `dev-plan-02-database` and the `/api/articles` handlers since `dev-plan-05-content-api`, so it's the value in actual use rather than a still-open choice.
 
-Nav order for 学習コンテンツ's three sections was decided in `dev-plan-07-frontend-base`: マーケティング講座 → 運用・設定 → AI活用事例 (flagship course first, then the practical how-to category, then the smaller AI use-case category), see `sys/03_frontend/web/src/components/Header.tsx`.
+Nav order for 学習コンテンツ's sections was decided in `dev-plan-07-frontend-base`: originally マーケティング講座 → 運用・設定 → AI活用事例 → クイズ・検定 (`dev-plan-2-4-frontend-quiz-ui`). In `dev-plan-2-9-line-yahoo-certification`, マーケティング講座 (courses/lessons, Phase 1) was removed entirely; クイズ・検定 (Phase 2) was kept — same backend (`quizzes`/`quiz_questions`/`quiz_choices`/... tables, `/api/quizzes` etc.) and same UI components, just moved from `/learn/quiz` to `/learn/line-yahoo-certification` and relabeled — giving the current order 運用・設定 → AI活用事例 → LINEヤフー認定資格勉強, see `sys/03_frontend/web/src/components/Header.tsx`.
 
 ---
 

@@ -18,10 +18,10 @@ import 'server-only'
 // step's result doc.
 //
 // Only public (no-auth) content endpoints are called this way. Anything
-// user-specific (progress, exam submission, lesson completion) goes through
-// the browser-side src/lib/api.ts instead, which carries the session cookie
-// — see the dev-plan-09-frontend-learn result doc for why that split was
-// chosen over forwarding cookies through server-side fetches.
+// user-specific goes through the browser-side src/lib/api.ts instead, which
+// carries the session cookie — see the dev-plan-09-frontend-learn result doc
+// for why that split was chosen over forwarding cookies through server-side
+// fetches.
 
 const API_URL = process.env.API_URL ?? 'http://localhost:8080'
 

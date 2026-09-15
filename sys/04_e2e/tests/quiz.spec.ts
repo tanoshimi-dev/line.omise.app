@@ -5,7 +5,7 @@ import { loginAs } from './helpers/auth'
 test('an unauthenticated visitor can pick single mode and answer a quiz', async ({ page }) => {
   const quiz = await seedQuiz()
   try {
-    await page.goto(`/learn/quiz/${quiz.slug}`)
+    await page.goto(`/learn/line-yahoo-certification/${quiz.slug}`)
     await page.getByRole('button', { name: '単発モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '解答する' }).click()
@@ -24,7 +24,7 @@ test('a logged-in reader can pick exam mode, submit a quiz, and see the final sc
   try {
     await loginAs(context, baseURL!, reader)
 
-    await page.goto(`/learn/quiz/${quiz.slug}`)
+    await page.goto(`/learn/line-yahoo-certification/${quiz.slug}`)
     await page.getByRole('button', { name: '検定モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '提出する' }).click()
@@ -45,20 +45,20 @@ test('mypage shows single-mode answer history and exam attempt history after log
   try {
     await loginAs(context, baseURL!, reader)
 
-    await page.goto(`/learn/quiz/${singleModeQuiz.slug}`)
+    await page.goto(`/learn/line-yahoo-certification/${singleModeQuiz.slug}`)
     await page.getByRole('button', { name: '単発モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '解答する' }).click()
     await expect(page.getByText('正解です！')).toBeVisible()
 
-    await page.goto(`/learn/quiz/${examModeQuiz.slug}`)
+    await page.goto(`/learn/line-yahoo-certification/${examModeQuiz.slug}`)
     await page.getByRole('button', { name: '検定モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '提出する' }).click()
     await expect(page.getByText('1 / 1問正解')).toBeVisible()
 
     await page.goto('/learn/me')
-    await expect(page.getByRole('heading', { name: 'クイズ・検定' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'LINEヤフー認定資格' })).toBeVisible()
 
     // Single-mode summary + expandable history.
     await expect(page.getByText(singleModeQuiz.title)).toBeVisible()
@@ -119,7 +119,7 @@ test('admin can create a quiz with a question, publish it, and it becomes answer
     await page.getByRole('button', { name: '設問を追加する' }).click()
     await expect(page.getByText('単一回答')).toBeVisible()
 
-    await page.goto(`/learn/quiz/${slug}`)
+    await page.goto(`/learn/line-yahoo-certification/${slug}`)
     await page.getByRole('button', { name: '単発モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '解答する' }).click()

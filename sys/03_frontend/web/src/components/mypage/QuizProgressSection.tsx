@@ -35,8 +35,8 @@ export default function QuizProgressSection() {
   return (
     <div className="mt-10 border-t border-gray-100 pt-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">クイズ・検定</h2>
-        <Link href="/learn/quiz" className="text-sm font-medium text-line-green hover:underline">
+        <h2 className="text-xl font-bold text-gray-900">LINEヤフー認定資格</h2>
+        <Link href="/learn/line-yahoo-certification" className="text-sm font-medium text-line-green hover:underline">
           一覧を見る
         </Link>
       </div>
@@ -68,7 +68,7 @@ function QuizProgressCard({ quiz: initialQuiz }: { quiz: QuizProgressSummary }) 
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <Link href={`/learn/quiz/${quiz.slug}`} className="font-bold text-gray-900 hover:text-line-green">
+      <Link href={`/learn/line-yahoo-certification/${quiz.slug}`} className="font-bold text-gray-900 hover:text-line-green">
         {quiz.title}
       </Link>
 

@@ -3,18 +3,20 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: '学習コンテンツ',
-  description: 'LINEマーケティング講座、LINE運用・設定記事、生成AI活用事例をまとめた学習コンテンツです。',
+  description: 'LINE運用・設定記事、生成AI活用事例、LINEヤフー認定資格をまとめた学習コンテンツです。',
 }
 
-// Order matches Header.tsx's mobile menu, decided in dev-plan-07-frontend-base
-// 7.3 (マーケティング講座 → 運用・設定 → AI活用事例) and reconfirmed here per
-// dev-plan-09-frontend-learn 9.1. クイズ・検定 was appended in
-// dev-plan-2-4-frontend-quiz-ui without reordering the original three.
+// Order matches Header.tsx's mobile menu. Reordered to put LINEヤフー認定資格
+// first per user request (dev-plan-learn-menu-reorder-center); previously
+// 運用・設定 → AI活用事例 → LINEヤフー認定資格 per dev-plan-07-frontend-base
+// 7.3 / dev-plan-09-frontend-learn 9.1. マーケティング講座は廃止。
+// クイズ・検定（dev-plan-2-4-frontend-quiz-ui）は同じ機能のまま LINEヤフー認定資格
+// として再ブランディング (dev-plan-2-9-line-yahoo-certification)。
 const categories = [
   {
-    href: '/learn/line-marketing',
-    title: 'LINEマーケティング講座',
-    description: '基礎から学ぶ、LINEを使ったマーケティング戦略の講座です。',
+    href: '/learn/line-yahoo-certification',
+    title: 'LINEヤフー認定資格',
+    description: 'LINEヤフー認定資格の取得に向けて、クイズ・検定形式で知識を確認できます。',
   },
   {
     href: '/learn/line-operation',
@@ -26,11 +28,6 @@ const categories = [
     title: '生成AI活用事例',
     description: '生成AIをビジネスに活用する事例を紹介する記事です。',
   },
-  {
-    href: '/learn/quiz',
-    title: 'クイズ・検定',
-    description: 'LINE公式アカウント運用の知識をクイズ・検定形式で確認できます。',
-  },
 ]
 
 export default function LearnTopPage() {
@@ -39,7 +36,7 @@ export default function LearnTopPage() {
       <h1 className="text-3xl font-bold text-gray-900">学習コンテンツ</h1>
       <p className="mt-4 text-gray-600">LINEアプリ運用に役立つ講座・記事をまとめています。</p>
 
-      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((category) => (
           <Link
             key={category.href}

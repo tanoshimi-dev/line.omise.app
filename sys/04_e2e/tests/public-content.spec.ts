@@ -2,32 +2,15 @@ import { test, expect } from '@playwright/test'
 import { withDB } from './helpers/db'
 
 // Uses the project's stable seed data (dev-plan-02-database's seed.sql):
-// course "line-marketing" / lesson "intro", article "rich-menu-basics",
-// usecase "sample-salon" — all published, so safe to assert against without
-// creating anything.
+// article "rich-menu-basics", usecase "sample-salon" — all published, so
+// safe to assert against without creating anything.
 
 test.describe('/learn/ public content', () => {
-  test('top page links to all three categories', async ({ page }) => {
+  test('top page links to all categories', async ({ page }) => {
     await page.goto('/learn')
-    await expect(page.getByRole('link', { name: 'LINEマーケティング講座' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'LINE運用・設定' })).toBeVisible()
     await expect(page.getByRole('link', { name: '生成AI活用事例' })).toBeVisible()
-  })
-
-  test('course page lists lessons and links to a lesson detail', async ({ page }) => {
-    await page.goto('/learn/line-marketing')
-    await expect(page.getByRole('heading', { name: 'LINEマーケティング講座' })).toBeVisible()
-
-    await page.getByRole('link', { name: 'はじめに' }).click()
-    await expect(page).toHaveURL(/\/learn\/line-marketing\/intro$/)
-    await expect(page.getByRole('heading', { name: 'はじめに' })).toBeVisible()
-  })
-
-  test('draft content never appears on a public page', async ({ page }) => {
-    // Regression coverage for dev-plan-05's publish-filtering: a lesson
-    // slug that only exists as a draft in fixtures elsewhere must 404 here.
-    const res = await page.goto('/learn/line-marketing/this-lesson-does-not-exist')
-    expect(res?.status()).toBe(404)
+    await expect(page.getByRole('link', { name: 'LINEヤフー認定資格' })).toBeVisible()
   })
 
   test('article list supports tag filtering', async ({ page }) => {

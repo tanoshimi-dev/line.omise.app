@@ -3,12 +3,12 @@ import { render, screen, waitFor } from '@testing-library/react'
 import MyProgressPage from './page'
 import { useAuth } from '@/lib/auth'
 import { api } from '@/lib/api'
-import type { MyProgress, MyQuizzesProgress } from '@/lib/types'
+import type { MyQuizzesProgress } from '@/lib/types'
 
-// dev-plan-2-6-test 2-6.2: マイページの履歴・進捗コンポーネント（未ログイン時の表示切り替えを含む）.
-// QuizProgressSection itself has no login check (dev-plan-2-5-frontend-mypage
-// 2-5.4) — the gate lives here, in the page that mounts it — so this test
-// exercises the page rather than the section in isolation.
+// dev-plan-2-9-line-yahoo-certification: マイページからコース進捗セクションを
+// 削除した後の、ログイン状態切り替えとクイズ・検定（LINEヤフー認定資格）
+// セクション表示を検証するテスト。QuizProgressSection 自体にログイン判定は
+// ない（dev-plan-2-5 2-5.4 の設計）ため、このページ側でその分岐を検証する。
 
 vi.mock('@/lib/auth', () => ({
   useAuth: vi.fn(),
@@ -35,16 +35,13 @@ describe('MyProgressPage', () => {
     render(<MyProgressPage />)
 
     expect(await screen.findByText(/ログインすると/)).toBeInTheDocument()
-    expect(screen.queryByText('クイズ・検定')).not.toBeInTheDocument()
+    expect(screen.queryByText('LINEヤフー認定資格')).not.toBeInTheDocument()
     expect(mockedApi.get).not.toHaveBeenCalled()
   })
 
-  it('shows the course progress and the quiz/exam section when logged in', async () => {
+  it('shows the quiz/exam section when logged in', async () => {
     mockedUseAuth.mockReturnValue({ user: baseUser, loading: false, refresh: vi.fn(), logout: vi.fn() })
     mockedApi.get.mockImplementation((path: unknown) => {
-      if (path === '/api/me/progress') {
-        return Promise.resolve({ courses: [] } satisfies MyProgress)
-      }
       if (path === '/api/me/quizzes/progress') {
         return Promise.resolve({ quizzes: [] } satisfies MyQuizzesProgress)
       }
@@ -53,8 +50,7 @@ describe('MyProgressPage', () => {
 
     render(<MyProgressPage />)
 
-    await waitFor(() => expect(screen.getByText('クイズ・検定')).toBeInTheDocument())
-    expect(screen.getByText('受講中の講座はまだありません。')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('LINEヤフー認定資格')).toBeInTheDocument())
     expect(screen.getByText('クイズ・検定はまだありません。')).toBeInTheDocument()
   })
 })

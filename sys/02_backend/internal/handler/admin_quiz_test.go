@@ -273,3 +273,12 @@ func TestAdminDeleteQuiz_CascadesQuestions(t *testing.T) {
 		t.Errorf("GET deleted quiz = %d, want 404", rec.Code)
 	}
 }
+
+func mustJSON(t *testing.T, v any) []byte {
+	t.Helper()
+	b, err := json.Marshal(v)
+	if err != nil {
+		t.Fatalf("failed to marshal request body: %v", err)
+	}
+	return b
+}

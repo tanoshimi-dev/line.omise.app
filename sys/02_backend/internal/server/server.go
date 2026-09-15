@@ -20,11 +20,8 @@ import (
 func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	userRepo := repository.NewUserRepository(dbPool.DB())
 	sessionRepo := repository.NewSessionRepository(dbPool.DB())
-	courseRepo := repository.NewCourseRepository(dbPool.DB())
 	articleRepo := repository.NewArticleRepository(dbPool.DB())
 	usecaseRepo := repository.NewUsecaseRepository(dbPool.DB())
-	examRepo := repository.NewExamRepository(dbPool.DB())
-	progressRepo := repository.NewProgressRepository(dbPool.DB())
 	quizRepo := repository.NewQuizRepository(dbPool.DB())
 
 	authHandler := &handler.AuthHandler{
@@ -43,11 +40,8 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	requireAdmin := middleware.RequireAdmin(sessionRepo, userRepo, cfg.SessionSecret)
 	optionalUser := middleware.OptionalUser(sessionRepo, userRepo, cfg.SessionSecret)
 
-	courseHandler := &handler.CourseHandler{Courses: courseRepo}
 	articleHandler := &handler.ArticleHandler{Articles: articleRepo}
 	usecaseHandler := &handler.UsecaseHandler{Usecases: usecaseRepo}
-	examHandler := &handler.ExamHandler{Exams: examRepo, Courses: courseRepo, Progress: progressRepo}
-	progressHandler := &handler.ProgressHandler{Courses: courseRepo, Exams: examRepo, Progress: progressRepo}
 	adminQuizHandler := &handler.AdminQuizHandler{Quizzes: quizRepo}
 	quizHandler := &handler.QuizHandler{Quizzes: quizRepo}
 
@@ -67,9 +61,6 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 
 	// Public content API (dev-plan-05-content-api) — no login required.
 	api := router.Group("/api")
-	api.GET("/courses", courseHandler.ListCourses)
-	api.GET("/courses/:slug", courseHandler.GetCourse)
-	api.GET("/courses/:slug/lessons/:lessonSlug", courseHandler.GetLesson)
 	api.GET("/articles", articleHandler.ListArticles)
 	api.GET("/articles/:category/:slug", articleHandler.GetArticle)
 	api.GET("/usecases", usecaseHandler.ListUsecases)
@@ -81,15 +72,6 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	// (dev-plan-11-frontend-admin) return drafts too, unlike the public GETs
 	// above, so they must stay behind requireAdmin.
 	admin := api.Group("/admin", requireAdmin)
-	admin.GET("/courses", courseHandler.AdminListCourses)
-	admin.GET("/courses/:id", courseHandler.AdminGetCourse)
-	admin.POST("/courses", courseHandler.AdminCreateCourse)
-	admin.PUT("/courses/:id", courseHandler.AdminUpdateCourse)
-	admin.DELETE("/courses/:id", courseHandler.AdminDeleteCourse)
-	admin.POST("/courses/:id/lessons", courseHandler.AdminCreateLesson)
-	admin.GET("/lessons/:id", courseHandler.AdminGetLesson)
-	admin.PUT("/lessons/:id", courseHandler.AdminUpdateLesson)
-	admin.DELETE("/lessons/:id", courseHandler.AdminDeleteLesson)
 	admin.GET("/articles", articleHandler.AdminListArticles)
 	admin.GET("/articles/:id", articleHandler.AdminGetArticle)
 	admin.POST("/articles", articleHandler.AdminCreateArticle)
@@ -101,11 +83,6 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	admin.POST("/usecases", usecaseHandler.AdminCreateUsecase)
 	admin.PUT("/usecases/:id", usecaseHandler.AdminUpdateUsecase)
 	admin.DELETE("/usecases/:id", usecaseHandler.AdminDeleteUsecase)
-	admin.GET("/lessons/:id/exam", examHandler.AdminGetExamByLesson)
-	admin.POST("/lessons/:lessonId/exam", examHandler.AdminCreateExam)
-	admin.POST("/exams/:examId/questions", examHandler.AdminCreateQuestion)
-	admin.PUT("/questions/:id", examHandler.AdminUpdateQuestion)
-	admin.DELETE("/questions/:id", examHandler.AdminDeleteQuestion)
 	admin.GET("/quizzes", adminQuizHandler.AdminListQuizzes)
 	admin.GET("/quizzes/:id", adminQuizHandler.AdminGetQuiz)
 	admin.POST("/quizzes", adminQuizHandler.AdminCreateQuiz)
@@ -114,13 +91,6 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	admin.POST("/quizzes/:quizId/questions", adminQuizHandler.AdminCreateQuestion)
 	admin.PUT("/quiz-questions/:id", adminQuizHandler.AdminUpdateQuestion)
 	admin.DELETE("/quiz-questions/:id", adminQuizHandler.AdminDeleteQuestion)
-
-	// Exam/progress endpoints — Reader login required (dev-plan-06 6.2/6.3).
-	api.GET("/lessons/:lessonId/exam", requireReader, examHandler.GetExam)
-	api.POST("/lessons/:lessonId/exam/submit", requireReader, examHandler.SubmitExam)
-	api.POST("/lessons/:lessonId/complete", requireReader, progressHandler.CompleteLesson)
-	api.GET("/courses/:slug/progress", requireReader, progressHandler.GetCourseProgress)
-	api.GET("/me/progress", requireReader, progressHandler.GetMyProgress)
 
 	// Quiz/exam answer+submit — anyone may answer/submit (dev-plan-2-3
 	// 2-3.2/2-3.3); optionalUser attaches the caller's identity when logged

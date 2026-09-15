@@ -32,8 +32,8 @@ export default async function QuizPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:py-24">
-      <Link href="/learn/quiz" className="text-sm font-medium text-line-green hover:underline">
-        ← クイズ・検定一覧へ戻る
+      <Link href="/learn/line-yahoo-certification" className="text-sm font-medium text-line-green hover:underline">
+        ← LINEヤフー認定資格一覧へ戻る
       </Link>
       <h1 className="mt-4 text-3xl font-bold text-gray-900">{quiz.title}</h1>
       {quiz.description && <p className="mt-2 text-gray-600">{quiz.description}</p>}

@@ -1,8 +1,8 @@
 import { loginUrl } from '@/lib/api'
 
-// Shown wherever progress-saving/exam-taking requires login but the visitor
-// isn't logged in (dev-plan-09-frontend-learn 9.2: viewing stays open to
-// everyone, only these actions require an account).
+// Shown wherever a page requires login but the visitor isn't logged in
+// (dev-plan-09-frontend-learn 9.2: viewing stays open to everyone, only
+// account-specific actions require login).
 export default function LoginPrompt({ message }: { message: string }) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6 text-center">
