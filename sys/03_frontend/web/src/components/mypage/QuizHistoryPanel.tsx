@@ -1,13 +1,17 @@
 'use client'
 
-// Practice-mode answer history for one quiz, lazily fetched when a
+// Single-mode answer history for one quiz, lazily fetched when a
 // QuizProgressSection card is expanded (dev-plan-2-5-frontend-mypage 2-5.1).
+// Each entry and the whole list can be deleted by their owner
+// (dev-plan-quiz-history-delete) — onChanged lets the parent card refresh
+// its progress summary afterward.
 
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import DeleteButton from '@/components/admin/DeleteButton'
 import type { QuizPracticeHistory, QuizPracticeHistoryEntry } from '@/lib/types'
 
-export default function QuizHistoryPanel({ slug }: { slug: string }) {
+export default function QuizHistoryPanel({ slug, onChanged }: { slug: string; onChanged?: () => void }) {
   const [history, setHistory] = useState<QuizPracticeHistoryEntry[] | null>(null)
 
   useEffect(() => {
@@ -34,18 +38,40 @@ export default function QuizHistoryPanel({ slug }: { slug: string }) {
   }
 
   return (
-    <ul className="mt-4 space-y-2 border-t border-gray-100 pt-4">
-      {history.map((entry, i) => (
-        <li key={`${entry.question_id}-${entry.answered_at}-${i}`} className="flex items-start justify-between gap-4 text-sm">
-          <div>
-            <p className="text-gray-700">{entry.question_text}</p>
-            <p className="text-xs text-gray-400">{new Date(entry.answered_at).toLocaleString('ja-JP')}</p>
-          </div>
-          <span className={`shrink-0 font-semibold ${entry.is_correct ? 'text-line-green' : 'text-red-600'}`}>
-            {entry.is_correct ? '正解' : '不正解'}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <div className="mt-4 border-t border-gray-100 pt-4">
+      <div className="flex justify-end">
+        <DeleteButton
+          path={`/api/me/quizzes/${slug}/history`}
+          confirmMessage="このクイズの解答履歴をすべて削除しますか？"
+          onDeleted={() => {
+            setHistory([])
+            onChanged?.()
+          }}
+        />
+      </div>
+      <ul className="mt-2 space-y-2">
+        {history.map((entry) => (
+          <li key={entry.id} className="flex items-start justify-between gap-4 text-sm">
+            <div>
+              <p className="text-gray-700">{entry.question_text}</p>
+              <p className="text-xs text-gray-400">{new Date(entry.answered_at).toLocaleString('ja-JP')}</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <span className={`font-semibold ${entry.is_correct ? 'text-line-green' : 'text-red-600'}`}>
+                {entry.is_correct ? '正解' : '不正解'}
+              </span>
+              <DeleteButton
+                path={`/api/me/quizzes/${slug}/history/${entry.id}`}
+                confirmMessage="この解答履歴を削除しますか？"
+                onDeleted={() => {
+                  setHistory((prev) => (prev ? prev.filter((e) => e.id !== entry.id) : prev))
+                  onChanged?.()
+                }}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

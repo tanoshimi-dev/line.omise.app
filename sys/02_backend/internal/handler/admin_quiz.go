@@ -12,9 +12,10 @@ import (
 )
 
 // AdminQuizHandler implements dev-plan-2-2-admin-api's Admin CRUD endpoints
-// for quizzes (practice mode) and exams (exam mode) — both stored as
-// `quizzes` rows distinguished by `mode`. See that plan's terminology note:
-// this is unrelated to the Phase 1 lesson-tied ExamHandler/`exams` table.
+// for quizzes — stored as `quizzes` rows. A reader chooses per-attempt
+// whether to answer question-by-question or submit the whole quiz at once
+// (dev-plan-quiz-mode-selection), so admins no longer set a fixed mode. This
+// is unrelated to the Phase 1 lesson-tied ExamHandler/`exams` table.
 type AdminQuizHandler struct {
 	Quizzes *repository.QuizRepository
 }
@@ -23,7 +24,6 @@ type quizRequest struct {
 	Slug         string `json:"slug"`
 	Title        string `json:"title"`
 	Description  string `json:"description"`
-	Mode         string `json:"mode"`
 	PassingScore *int   `json:"passing_score"`
 	Published    bool   `json:"published"`
 }
@@ -90,7 +90,7 @@ func (h *AdminQuizHandler) AdminCreateQuiz(c *gin.Context) {
 		return
 	}
 
-	quiz, err := h.Quizzes.Create(c.Request.Context(), req.Slug, req.Title, req.Description, req.Mode, req.PassingScore, req.Published)
+	quiz, err := h.Quizzes.Create(c.Request.Context(), req.Slug, req.Title, req.Description, req.PassingScore, req.Published)
 	if err != nil {
 		respondQuizWriteError(c, err)
 		return
@@ -109,7 +109,7 @@ func (h *AdminQuizHandler) AdminUpdateQuiz(c *gin.Context) {
 		return
 	}
 
-	quiz, err := h.Quizzes.Update(c.Request.Context(), id, req.Slug, req.Title, req.Description, req.Mode, req.PassingScore, req.Published)
+	quiz, err := h.Quizzes.Update(c.Request.Context(), id, req.Slug, req.Title, req.Description, req.PassingScore, req.Published)
 	if err != nil {
 		respondQuizWriteError(c, err)
 		return
@@ -193,14 +193,6 @@ func bindQuizRequest(c *gin.Context) (quizRequest, bool) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "slug and title are required"})
 		return req, false
 	}
-	if err := service.ValidateQuizMode(req.Mode); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return req, false
-	}
-	if err := service.ValidatePassingScore(req.Mode, req.PassingScore); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return req, false
-	}
 	return req, true
 }
 
@@ -251,7 +243,6 @@ func quizAdminJSON(quiz *repository.Quiz, questions []repository.QuizQuestion, c
 		"slug":          quiz.Slug,
 		"title":         quiz.Title,
 		"description":   quiz.Description,
-		"mode":          quiz.Mode,
 		"passing_score": quiz.PassingScore,
 		"published":     quiz.Published,
 	}

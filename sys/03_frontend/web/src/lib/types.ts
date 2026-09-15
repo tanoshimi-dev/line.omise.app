@@ -139,10 +139,10 @@ export interface MyProgress {
   courses: MyProgressCourse[]
 }
 
-// Quiz (practice mode) / exam (exam mode) content — dev-plan-2-2-admin-api.
-// Both are `quizzes` rows distinguished by `mode`; unrelated to the Phase 1
-// lesson-tied Exam/AdminExam types above (see that plan's terminology note).
-export type QuizMode = 'practice' | 'exam'
+// Quiz content — dev-plan-2-2-admin-api. A reader chooses per-attempt
+// whether to answer question-by-question or submit the whole quiz at once
+// (dev-plan-quiz-mode-selection); unrelated to the Phase 1 lesson-tied
+// Exam/AdminExam types above (see that plan's terminology note).
 
 export interface AdminQuizChoice {
   id: string
@@ -167,7 +167,6 @@ export interface AdminQuiz {
   slug: string
   title: string
   description: string
-  mode: QuizMode
   passing_score: number | null
   published: boolean
   questions?: AdminQuizQuestion[]
@@ -181,7 +180,6 @@ export interface QuizListItem {
   slug: string
   title: string
   description: string
-  mode: QuizMode
   passing_score: number | null
 }
 
@@ -204,13 +202,12 @@ export interface Quiz {
   slug: string
   title: string
   description: string
-  mode: QuizMode
   passing_score: number | null
   questions: QuizQuestion[]
 }
 
-// Response to POST /api/quiz-questions/:id/answer (practice mode) — reveals
-// the answer for this one question only, after it's been answered.
+// Response to POST /api/quiz-questions/:id/answer — reveals the answer for
+// this one question only, after it's been answered.
 export interface QuizAnswerResult {
   question_id: string
   is_correct: boolean
@@ -245,6 +242,7 @@ export interface QuizSubmitResult {
 // Reader mypage: quiz/exam history and progress (dev-plan-2-5-frontend-mypage).
 
 export interface QuizPracticeHistoryEntry {
+  id: string
   question_id: string
   question_text: string
   selected_choice_ids: string[]
@@ -285,30 +283,21 @@ export interface QuizAttemptDetail extends QuizAttemptSummary {
   questions: QuizAttemptQuestionReview[]
 }
 
-export interface QuizPracticeProgress {
+// Combines question-by-question and whole-quiz-submission progress for one
+// quiz, since a reader may have used either or both (dev-plan-quiz-mode-selection).
+export interface QuizProgressSummary {
   quiz_id: string
   slug: string
   title: string
-  mode: 'practice'
   total_questions: number
   answered_count: number
   correct_count: number
-}
-
-export interface QuizExamProgress {
-  quiz_id: string
-  slug: string
-  title: string
-  mode: 'exam'
-  total_questions: number
   attempt_count: number
   passing_score: number | null
   best_score: number | null
   latest_score: number | null
   latest_passed: boolean | null
 }
-
-export type QuizProgressSummary = QuizPracticeProgress | QuizExamProgress
 
 export interface MyQuizzesProgress {
   quizzes: QuizProgressSummary[]

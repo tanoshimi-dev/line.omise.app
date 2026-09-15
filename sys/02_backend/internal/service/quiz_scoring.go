@@ -8,12 +8,6 @@ import (
 )
 
 var (
-	// ErrQuizModeMismatch is returned when a request hits the wrong
-	// endpoint for a quiz's mode — the practice answer endpoint against an
-	// exam-mode quiz, or the exam submit endpoint against a practice-mode
-	// quiz (dev-plan-2-3 2-3.2/2-3.3).
-	ErrQuizModeMismatch = errors.New("this endpoint does not apply to this quiz's mode")
-
 	// ErrInvalidQuizAnswer is returned when a selected choice id doesn't
 	// belong to the question being answered, or when an answer references a
 	// question that doesn't belong to the quiz being submitted.

@@ -53,7 +53,7 @@ export default function AttemptDetailModal({ slug, attemptId, onClose }: { slug:
                     {qi + 1}. {q.question_text}
                   </p>
                   <p className={`mt-1 font-semibold ${q.is_correct ? 'text-line-green' : 'text-red-600'}`}>{q.is_correct ? '正解' : '不正解'}</p>
-                  <p className="mt-1 text-gray-600">{q.explanation}</p>
+                  <p className="mt-1 whitespace-pre-line text-gray-600">{q.explanation}</p>
                   {q.reference_url && (
                     <a href={q.reference_url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-line-green hover:underline">
                       参考リンク

@@ -32,7 +32,6 @@ const examQuiz: Quiz = {
   slug: 'basic-line-exam',
   title: '基礎LINE検定',
   description: '',
-  mode: 'exam',
   passing_score: 60,
   questions: [
     {
@@ -97,6 +96,8 @@ describe('ExamRunner', () => {
     render(<ExamRunner quiz={examQuiz} />)
 
     await userEvent.click(screen.getByLabelText('4'))
+    await userEvent.click(screen.getByText('次の問題へ'))
+    await waitFor(() => expect(screen.getByText('3+3?')).toBeInTheDocument())
     await userEvent.click(screen.getByLabelText('6'))
     await userEvent.click(screen.getByText('提出する'))
 
@@ -127,10 +128,11 @@ describe('ExamRunner', () => {
 
     render(<ExamRunner quiz={examQuiz} />)
 
-    await userEvent.click(screen.getByLabelText('4'))
+    await userEvent.click(screen.getByText('次の問題へ'))
+    await waitFor(() => expect(screen.getByText('3+3?')).toBeInTheDocument())
     await userEvent.click(screen.getByText('提出する'))
 
-    expect(window.confirm).toHaveBeenCalledWith('未回答の設問が1問あります。このまま提出しますか？')
+    expect(window.confirm).toHaveBeenCalledWith('未回答の設問が2問あります。このまま提出しますか？')
     await waitFor(() => expect(mockedApi.post).toHaveBeenCalled())
   })
 
@@ -138,10 +140,47 @@ describe('ExamRunner', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false)
 
     render(<ExamRunner quiz={examQuiz} />)
+    await userEvent.click(screen.getByText('次の問題へ'))
+    await waitFor(() => expect(screen.getByText('3+3?')).toBeInTheDocument())
     await userEvent.click(screen.getByText('提出する'))
 
     expect(window.confirm).toHaveBeenCalled()
     expect(mockedApi.post).not.toHaveBeenCalled()
+  })
+
+  it('can navigate back to change an earlier answer before submitting', async () => {
+    mockedApi.post.mockResolvedValueOnce({
+      quiz_id: '1',
+      score: 1,
+      total_questions: 2,
+      passed: false,
+      attempt_id: '7',
+      questions: [],
+    } satisfies QuizSubmitResult)
+
+    render(<ExamRunner quiz={examQuiz} />)
+
+    await userEvent.click(screen.getByLabelText('4'))
+    await userEvent.click(screen.getByText('次の問題へ'))
+    await waitFor(() => expect(screen.getByText('3+3?')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByText('前の問題へ'))
+    await waitFor(() => expect(screen.getByText('2+2?')).toBeInTheDocument())
+    expect(screen.getByLabelText('4')).toBeChecked()
+
+    await userEvent.click(screen.getByLabelText('5'))
+    await userEvent.click(screen.getByText('次の問題へ'))
+    await userEvent.click(screen.getByLabelText('6'))
+    await userEvent.click(screen.getByText('提出する'))
+
+    await waitFor(() => expect(mockedApi.post).toHaveBeenCalled())
+    const [, body] = mockedApi.post.mock.calls[0]
+    expect(body).toMatchObject({
+      answers: [
+        { question_id: 100, choice_ids: [1001] },
+        { question_id: 101, choice_ids: [1010] },
+      ],
+    })
   })
 
   it('shows a login prompt on the result screen when logged out', async () => {
@@ -156,6 +195,8 @@ describe('ExamRunner', () => {
     } satisfies QuizSubmitResult)
 
     render(<ExamRunner quiz={examQuiz} />)
+    await userEvent.click(screen.getByText('次の問題へ'))
+    await waitFor(() => expect(screen.getByText('3+3?')).toBeInTheDocument())
     await userEvent.click(screen.getByText('提出する'))
 
     await waitFor(() => expect(screen.getByText(/ログインすると/)).toBeInTheDocument())

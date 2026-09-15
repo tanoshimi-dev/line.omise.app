@@ -86,16 +86,16 @@ export interface TestQuiz {
   cleanup: () => Promise<void>
 }
 
-export async function seedQuiz(mode: 'practice' | 'exam', options?: { passingScore?: number }): Promise<TestQuiz> {
+export async function seedQuiz(options?: { passingScore?: number }): Promise<TestQuiz> {
   const client = new Client({ connectionString: process.env.DATABASE_URL })
   await client.connect()
 
-  const slug = `e2e-quiz-${mode}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-  const title = `E2E ${mode} quiz ${Date.now()}`
+  const slug = `e2e-quiz-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const title = `E2E quiz ${Date.now()}`
   const quizRes = await client.query<{ id: number }>(
-    `INSERT INTO quizzes (slug, title, mode, passing_score, published)
-     VALUES ($1, $2, $3, $4, true) RETURNING id`,
-    [slug, title, mode, options?.passingScore ?? null],
+    `INSERT INTO quizzes (slug, title, passing_score, published)
+     VALUES ($1, $2, $3, true) RETURNING id`,
+    [slug, title, options?.passingScore ?? null],
   )
   const quizId = quizRes.rows[0].id
 

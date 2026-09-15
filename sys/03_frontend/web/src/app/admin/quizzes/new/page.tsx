@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import { TextField, TextAreaField, NumberField, SubmitButton } from '@/components/admin/FormField'
-import type { AdminQuiz, QuizMode } from '@/lib/types'
+import type { AdminQuiz } from '@/lib/types'
 
 export default function NewQuizPage() {
   const router = useRouter()
   const [slug, setSlug] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [mode, setMode] = useState<QuizMode>('practice')
+  const [hasPassingScore, setHasPassingScore] = useState(false)
   const [passingScore, setPassingScore] = useState(70)
   const [published, setPublished] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -27,8 +27,7 @@ export default function NewQuizPage() {
         slug,
         title,
         description,
-        mode,
-        passing_score: mode === 'exam' ? passingScore : null,
+        passing_score: hasPassingScore ? passingScore : null,
         published,
       })
       router.push(`/admin/quizzes/${quiz.id}/edit`)
@@ -51,19 +50,11 @@ export default function NewQuizPage() {
         <TextField label="タイトル" name="title" value={title} onChange={setTitle} required placeholder="基礎LINE検定" />
         <TextAreaField label="説明" name="description" value={description} onChange={setDescription} rows={3} />
 
-        <label className="block">
-          <span className="text-sm font-medium text-gray-700">種別</span>
-          <select
-            value={mode}
-            onChange={(e) => setMode(e.target.value as QuizMode)}
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-line-green focus:outline-none focus:ring-1 focus:ring-line-green"
-          >
-            <option value="practice">クイズ（1問ずつ即時採点）</option>
-            <option value="exam">検定（一括提出・最終スコア）</option>
-          </select>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={hasPassingScore} onChange={(e) => setHasPassingScore(e.target.checked)} className="accent-line-green" />
+          <span className="text-sm font-medium text-gray-700">合格点を設定する（検定モードでの合否判定に使われます）</span>
         </label>
-
-        {mode === 'exam' && <NumberField label="合格点（0〜100、任意）" name="passing_score" value={passingScore} onChange={setPassingScore} />}
+        {hasPassingScore && <NumberField label="合格点（0〜100）" name="passing_score" value={passingScore} onChange={setPassingScore} />}
 
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} className="accent-line-green" />

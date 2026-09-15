@@ -32,7 +32,6 @@ const oneQuestionQuiz: Quiz = {
   slug: 'sample-quiz',
   title: 'Sample Quiz',
   description: '',
-  mode: 'practice',
   passing_score: null,
   questions: [
     {
@@ -74,7 +73,7 @@ describe('QuizQuestionCard', () => {
     expect(screen.getByText('Because 2+2=4.')).toBeInTheDocument()
     expect(mockedApi.post).toHaveBeenCalledWith('/api/quiz-questions/100/answer', { choice_ids: [1000] })
 
-    await userEvent.click(screen.getByText('次の問題へ'))
+    await userEvent.click(screen.getByText('結果を見る'))
 
     await waitFor(() => expect(screen.getByText('1問中 1問正解しました')).toBeInTheDocument())
     expect(screen.queryByText(/ログインすると/)).not.toBeInTheDocument()
@@ -96,7 +95,7 @@ describe('QuizQuestionCard', () => {
     await userEvent.click(screen.getByLabelText('5'))
     await userEvent.click(screen.getByText('解答する'))
     await waitFor(() => expect(screen.getByText('不正解です')).toBeInTheDocument())
-    await userEvent.click(screen.getByText('次の問題へ'))
+    await userEvent.click(screen.getByText('結果を見る'))
 
     await waitFor(() => expect(screen.getByText(/ログインすると/)).toBeInTheDocument())
   })
@@ -104,5 +103,47 @@ describe('QuizQuestionCard', () => {
   it('disables the answer button until a choice is selected', () => {
     render(<QuizQuestionCard quiz={oneQuestionQuiz} />)
     expect(screen.getByText('解答する')).toBeDisabled()
+  })
+
+  it('going back to a graded question redisplays its result without re-submitting', async () => {
+    const twoQuestionQuiz: Quiz = {
+      ...oneQuestionQuiz,
+      questions: [
+        oneQuestionQuiz.questions[0],
+        {
+          id: '101',
+          question_text: '3+3?',
+          allow_multiple: false,
+          sort_order: 2,
+          choices: [
+            { id: '1010', choice_text: '6', sort_order: 1 },
+            { id: '1011', choice_text: '7', sort_order: 2 },
+          ],
+        },
+      ],
+    }
+    mockedApi.post.mockResolvedValueOnce({
+      question_id: '100',
+      is_correct: true,
+      selected_choice_ids: ['1000'],
+      correct_choice_ids: ['1000'],
+      explanation: 'Because 2+2=4.',
+      reference_url: '',
+    } satisfies QuizAnswerResult)
+
+    render(<QuizQuestionCard quiz={twoQuestionQuiz} />)
+
+    await userEvent.click(screen.getByLabelText('4'))
+    await userEvent.click(screen.getByText('解答する'))
+    await waitFor(() => expect(screen.getByText('正解です！')).toBeInTheDocument())
+    expect(mockedApi.post).toHaveBeenCalledTimes(1)
+
+    await userEvent.click(screen.getByText('次の問題へ'))
+    await waitFor(() => expect(screen.getByText('3+3?')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByText('前の問題へ'))
+    await waitFor(() => expect(screen.getByText('2+2?')).toBeInTheDocument())
+    expect(screen.getByText('正解です！')).toBeInTheDocument()
+    expect(mockedApi.post).toHaveBeenCalledTimes(1)
   })
 })

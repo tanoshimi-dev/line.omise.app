@@ -15,10 +15,11 @@ import (
 )
 
 // QuizHandler implements dev-plan-2-3-answer-scoring-api's public/Reader
-// endpoints: fetching a quiz, answering it (practice mode) or submitting it
-// (exam mode), and a logged-in Reader's history/progress. See
-// dev-plan-2-2-admin-api's terminology note — this is unrelated to the
-// Phase 1 lesson-tied ExamHandler.
+// endpoints: fetching a quiz, answering it one question at a time or
+// submitting it all at once, and a logged-in Reader's history/progress. Per
+// dev-plan-quiz-mode-selection, the reader picks per-attempt which of the
+// two flows to use — any published quiz supports both. This is unrelated to
+// the Phase 1 lesson-tied ExamHandler.
 type QuizHandler struct {
 	Quizzes *repository.QuizRepository
 }
@@ -61,7 +62,6 @@ func quizListItemJSON(quiz *repository.Quiz) gin.H {
 		"slug":          quiz.Slug,
 		"title":         quiz.Title,
 		"description":   quiz.Description,
-		"mode":          quiz.Mode,
 		"passing_score": quiz.PassingScore,
 	}
 }
@@ -89,9 +89,10 @@ func (h *QuizHandler) GetQuiz(c *gin.Context) {
 	c.JSON(http.StatusOK, quizPublicJSON(quiz, questions, choices))
 }
 
-// AnswerQuestion handles POST /api/quiz-questions/:id/answer — practice mode
-// only. Anyone can answer; the answer is only recorded when the caller is
-// logged in (middleware.OptionalUser).
+// AnswerQuestion handles POST /api/quiz-questions/:id/answer — grades one
+// question immediately, for a reader who chose to answer question-by-
+// question. Anyone can answer; the answer is only recorded when the caller
+// is logged in (middleware.OptionalUser).
 func (h *QuizHandler) AnswerQuestion(c *gin.Context) {
 	ctx := c.Request.Context()
 	questionID, ok := parseIDParam(c, "id")
@@ -109,11 +110,6 @@ func (h *QuizHandler) AnswerQuestion(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		return
 	}
-	if quiz.Mode != "practice" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "this question belongs to an exam-mode quiz; submit via POST /api/quizzes/:slug/submit instead"})
-		return
-	}
-
 	var req quizAnswerRequest
 	if err := c.ShouldBindJSON(&req); err != nil || len(req.ChoiceIDs) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "choice_ids is required"})
@@ -148,18 +144,15 @@ func (h *QuizHandler) AnswerQuestion(c *gin.Context) {
 	})
 }
 
-// SubmitQuiz handles POST /api/quizzes/:slug/submit — exam mode only.
-// Anyone can submit; the attempt is only recorded when the caller is
-// logged in (middleware.OptionalUser).
+// SubmitQuiz handles POST /api/quizzes/:slug/submit — grades every question
+// at once and returns the final score, for a reader who chose to submit the
+// whole quiz together. Anyone can submit; the attempt is only recorded when
+// the caller is logged in (middleware.OptionalUser).
 func (h *QuizHandler) SubmitQuiz(c *gin.Context) {
 	ctx := c.Request.Context()
 	quiz, err := h.Quizzes.GetPublishedBySlug(ctx, c.Param("slug"))
 	if err != nil {
 		respondQuizError(c, err)
-		return
-	}
-	if quiz.Mode != "exam" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "this quiz is practice mode; answer via POST /api/quiz-questions/:id/answer instead"})
 		return
 	}
 
@@ -224,18 +217,15 @@ func (h *QuizHandler) SubmitQuiz(c *gin.Context) {
 	c.JSON(http.StatusOK, quizSubmitResultJSON(quiz, grade, questionByID, attemptID))
 }
 
-// GetPracticeHistory handles GET /api/me/quizzes/:slug/history — practice
-// mode only, Reader login required.
+// GetPracticeHistory handles GET /api/me/quizzes/:slug/history — a reader's
+// question-by-question answer history for a quiz (empty if they've only
+// ever submitted it as a whole), Reader login required.
 func (h *QuizHandler) GetPracticeHistory(c *gin.Context) {
 	ctx := c.Request.Context()
 	user := middleware.CurrentUser(c)
 	quiz, err := h.Quizzes.GetPublishedBySlug(ctx, c.Param("slug"))
 	if err != nil {
 		respondQuizError(c, err)
-		return
-	}
-	if quiz.Mode != "practice" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "history is only available for practice-mode quizzes; use /attempts for exam mode"})
 		return
 	}
 
@@ -259,6 +249,7 @@ func (h *QuizHandler) GetPracticeHistory(c *gin.Context) {
 	for _, a := range answers {
 		q := questionByID[a.QuestionID]
 		items = append(items, gin.H{
+			"id":                  strconv.FormatInt(a.ID, 10),
 			"question_id":         strconv.FormatInt(a.QuestionID, 10),
 			"question_text":       q.QuestionText,
 			"selected_choice_ids": formatIDs(a.SelectedChoiceIDs),
@@ -269,18 +260,15 @@ func (h *QuizHandler) GetPracticeHistory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"quiz_id": strconv.FormatInt(quiz.ID, 10), "history": items})
 }
 
-// ListAttempts handles GET /api/me/quizzes/:slug/attempts — exam mode only,
-// Reader login required.
+// ListAttempts handles GET /api/me/quizzes/:slug/attempts — a reader's
+// whole-quiz submission history for a quiz (empty if they've only ever
+// answered it question-by-question), Reader login required.
 func (h *QuizHandler) ListAttempts(c *gin.Context) {
 	ctx := c.Request.Context()
 	user := middleware.CurrentUser(c)
 	quiz, err := h.Quizzes.GetPublishedBySlug(ctx, c.Param("slug"))
 	if err != nil {
 		respondQuizError(c, err)
-		return
-	}
-	if quiz.Mode != "exam" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "attempts are only available for exam-mode quizzes; use /history for practice mode"})
 		return
 	}
 
@@ -366,8 +354,95 @@ func (h *QuizHandler) GetAttempt(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// DeleteAttempt handles DELETE /api/me/quizzes/:slug/attempts/:attemptId —
+// deletes one of the caller's own exam-mode attempts (dev-plan-quiz-history-delete).
+// 404s both when the attempt doesn't exist and when it belongs to someone
+// else, matching GetAttempt's ownership check.
+func (h *QuizHandler) DeleteAttempt(c *gin.Context) {
+	ctx := c.Request.Context()
+	user := middleware.CurrentUser(c)
+	quiz, err := h.Quizzes.GetPublishedBySlug(ctx, c.Param("slug"))
+	if err != nil {
+		respondQuizError(c, err)
+		return
+	}
+	attemptID, ok := parseIDParam(c, "attemptId")
+	if !ok {
+		return
+	}
+	attempt, err := h.Quizzes.GetOwnAttempt(ctx, attemptID, user.ID)
+	if err != nil || attempt.QuizID != quiz.ID {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+	if err := h.Quizzes.DeleteOwnAttempt(ctx, attemptID, user.ID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+// DeleteAllAttempts handles DELETE /api/me/quizzes/:slug/attempts — deletes
+// every exam-mode attempt the caller has for this quiz (dev-plan-quiz-history-delete's
+// bulk "clear history" action).
+func (h *QuizHandler) DeleteAllAttempts(c *gin.Context) {
+	ctx := c.Request.Context()
+	user := middleware.CurrentUser(c)
+	quiz, err := h.Quizzes.GetPublishedBySlug(ctx, c.Param("slug"))
+	if err != nil {
+		respondQuizError(c, err)
+		return
+	}
+	if err := h.Quizzes.DeleteAttemptsForQuiz(ctx, user.ID, quiz.ID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+// DeletePracticeAnswer handles DELETE /api/me/quizzes/:slug/history/:answerId
+// — deletes one of the caller's own question-by-question answers
+// (dev-plan-quiz-history-delete).
+func (h *QuizHandler) DeletePracticeAnswer(c *gin.Context) {
+	ctx := c.Request.Context()
+	user := middleware.CurrentUser(c)
+	if _, err := h.Quizzes.GetPublishedBySlug(ctx, c.Param("slug")); err != nil {
+		respondQuizError(c, err)
+		return
+	}
+	answerID, ok := parseIDParam(c, "answerId")
+	if !ok {
+		return
+	}
+	if err := h.Quizzes.DeleteOwnPracticeAnswer(ctx, answerID, user.ID); err != nil {
+		respondQuizError(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+// DeleteAllPracticeHistory handles DELETE /api/me/quizzes/:slug/history —
+// deletes every question-by-question answer the caller has for this quiz
+// (dev-plan-quiz-history-delete's bulk "clear history" action).
+func (h *QuizHandler) DeleteAllPracticeHistory(c *gin.Context) {
+	ctx := c.Request.Context()
+	user := middleware.CurrentUser(c)
+	quiz, err := h.Quizzes.GetPublishedBySlug(ctx, c.Param("slug"))
+	if err != nil {
+		respondQuizError(c, err)
+		return
+	}
+	if err := h.Quizzes.DeletePracticeHistoryForQuiz(ctx, user.ID, quiz.ID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
 // GetQuizProgress handles GET /api/me/quizzes/:slug/progress — Reader login
-// required. Shape depends on the quiz's mode (dev-plan-2-3 2-3.4).
+// required. Returns both question-by-question and whole-quiz-submission
+// progress for the quiz, since a reader may have used either or both
+// (dev-plan-quiz-mode-selection).
 func (h *QuizHandler) GetQuizProgress(c *gin.Context) {
 	ctx := c.Request.Context()
 	user := middleware.CurrentUser(c)
@@ -417,43 +492,38 @@ func (h *QuizHandler) quizProgress(ctx context.Context, userID int64, quiz *repo
 	}
 
 	base := gin.H{
-		"quiz_id": strconv.FormatInt(quiz.ID, 10),
-		"slug":    quiz.Slug,
-		"title":   quiz.Title,
-		"mode":    quiz.Mode,
+		"quiz_id":         strconv.FormatInt(quiz.ID, 10),
+		"slug":            quiz.Slug,
+		"title":           quiz.Title,
+		"total_questions": len(questions),
+		"passing_score":   quiz.PassingScore,
 	}
 
-	if quiz.Mode == "practice" {
-		answers, err := h.Quizzes.ListPracticeHistory(ctx, userID, quiz.ID)
-		if err != nil {
-			return nil, err
-		}
-		latestByQuestion := make(map[int64]bool, len(questions))
-		for _, a := range answers { // newest first; keep only the first (latest) per question
-			if _, seen := latestByQuestion[a.QuestionID]; seen {
-				continue
-			}
-			latestByQuestion[a.QuestionID] = a.IsCorrect
-		}
-		correct := 0
-		for _, ok := range latestByQuestion {
-			if ok {
-				correct++
-			}
-		}
-		base["total_questions"] = len(questions)
-		base["answered_count"] = len(latestByQuestion)
-		base["correct_count"] = correct
-		return base, nil
+	answers, err := h.Quizzes.ListPracticeHistory(ctx, userID, quiz.ID)
+	if err != nil {
+		return nil, err
 	}
+	latestByQuestion := make(map[int64]bool, len(questions))
+	for _, a := range answers { // newest first; keep only the first (latest) per question
+		if _, seen := latestByQuestion[a.QuestionID]; seen {
+			continue
+		}
+		latestByQuestion[a.QuestionID] = a.IsCorrect
+	}
+	correct := 0
+	for _, ok := range latestByQuestion {
+		if ok {
+			correct++
+		}
+	}
+	base["answered_count"] = len(latestByQuestion)
+	base["correct_count"] = correct
 
 	attempts, err := h.Quizzes.ListAttempts(ctx, userID, quiz.ID)
 	if err != nil {
 		return nil, err
 	}
-	base["total_questions"] = len(questions)
 	base["attempt_count"] = len(attempts)
-	base["passing_score"] = quiz.PassingScore
 	if len(attempts) > 0 {
 		best := attempts[0]
 		for _, a := range attempts {
@@ -513,7 +583,6 @@ func quizPublicJSON(quiz *repository.Quiz, questions []repository.QuizQuestion, 
 		"slug":          quiz.Slug,
 		"title":         quiz.Title,
 		"description":   quiz.Description,
-		"mode":          quiz.Mode,
 		"passing_score": quiz.PassingScore,
 		"questions":     questionItems,
 	}

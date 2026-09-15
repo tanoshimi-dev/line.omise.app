@@ -17,10 +17,10 @@ func TestQuizCreate_DuplicateSlugFails(t *testing.T) {
 	quizzes := repository.NewQuizRepository(pool)
 	ctx := context.Background()
 
-	if _, err := quizzes.Create(ctx, "line-quiz", "LINE Quiz", "", "practice", nil, true); err != nil {
+	if _, err := quizzes.Create(ctx, "line-quiz", "LINE Quiz", "", nil, true); err != nil {
 		t.Fatalf("first Create: %v", err)
 	}
-	if _, err := quizzes.Create(ctx, "line-quiz", "Another", "", "practice", nil, true); err == nil {
+	if _, err := quizzes.Create(ctx, "line-quiz", "Another", "", nil, true); err == nil {
 		t.Error("expected a unique-constraint error creating a second quiz with the same slug, got nil")
 	}
 }
@@ -31,7 +31,7 @@ func TestQuizCreate_PassingScoreRoundTripsAsNil(t *testing.T) {
 	quizzes := repository.NewQuizRepository(pool)
 	ctx := context.Background()
 
-	quiz, err := quizzes.Create(ctx, "practice-quiz", "Practice Quiz", "", "practice", nil, true)
+	quiz, err := quizzes.Create(ctx, "no-passing-score-quiz", "No Passing Score Quiz", "", nil, true)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
@@ -54,7 +54,7 @@ func TestQuizCreate_PassingScoreRoundTripsAsValue(t *testing.T) {
 	quizzes := repository.NewQuizRepository(pool)
 	ctx := context.Background()
 
-	quiz, err := quizzes.Create(ctx, "exam-quiz", "Exam Quiz", "", "exam", intPtr(80), true)
+	quiz, err := quizzes.Create(ctx, "exam-quiz", "Exam Quiz", "", intPtr(80), true)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
@@ -77,7 +77,7 @@ func TestQuizCreateQuestion_InsertsQuestionAndChoicesAtomically(t *testing.T) {
 	quizzes := repository.NewQuizRepository(pool)
 	ctx := context.Background()
 
-	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", "practice", nil, true)
+	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", nil, true)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
@@ -112,7 +112,7 @@ func TestQuizCreateQuestion_EmptyReferenceURLRoundTripsAsEmptyString(t *testing.
 	quizzes := repository.NewQuizRepository(pool)
 	ctx := context.Background()
 
-	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", "practice", nil, true)
+	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", nil, true)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
@@ -135,7 +135,7 @@ func TestQuizUpdateQuestion_ReplacesChoicesEntirely(t *testing.T) {
 	quizzes := repository.NewQuizRepository(pool)
 	ctx := context.Background()
 
-	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", "practice", nil, true)
+	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", nil, true)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
@@ -174,7 +174,7 @@ func TestQuizDeleteQuestion_CascadesChoices(t *testing.T) {
 	quizzes := repository.NewQuizRepository(pool)
 	ctx := context.Background()
 
-	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", "practice", nil, true)
+	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", nil, true)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
@@ -216,7 +216,7 @@ func TestQuizDelete_CascadesQuestionsAndChoices(t *testing.T) {
 	quizzes := repository.NewQuizRepository(pool)
 	ctx := context.Background()
 
-	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", "practice", nil, true)
+	quiz, err := quizzes.Create(ctx, "quiz", "Quiz", "", nil, true)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}

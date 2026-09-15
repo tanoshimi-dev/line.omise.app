@@ -2,10 +2,11 @@ import { test, expect } from '@playwright/test'
 import { seedUser, seedQuiz, withDB } from './helpers/db'
 import { loginAs } from './helpers/auth'
 
-test('an unauthenticated visitor can answer a practice quiz and see the result', async ({ page }) => {
-  const quiz = await seedQuiz('practice')
+test('an unauthenticated visitor can pick single mode and answer a quiz', async ({ page }) => {
+  const quiz = await seedQuiz()
   try {
     await page.goto(`/learn/quiz/${quiz.slug}`)
+    await page.getByRole('button', { name: '単発モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '解答する' }).click()
 
@@ -17,13 +18,14 @@ test('an unauthenticated visitor can answer a practice quiz and see the result',
   }
 })
 
-test('a logged-in reader can submit an exam-mode quiz and see the final score', async ({ page, context, baseURL }) => {
-  const quiz = await seedQuiz('exam', { passingScore: 60 })
+test('a logged-in reader can pick exam mode, submit a quiz, and see the final score', async ({ page, context, baseURL }) => {
+  const quiz = await seedQuiz({ passingScore: 60 })
   const reader = await seedUser('reader')
   try {
     await loginAs(context, baseURL!, reader)
 
     await page.goto(`/learn/quiz/${quiz.slug}`)
+    await page.getByRole('button', { name: '検定モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '提出する' }).click()
 
@@ -36,19 +38,21 @@ test('a logged-in reader can submit an exam-mode quiz and see the final score', 
   }
 })
 
-test('mypage shows practice answer history and exam attempt history after logging in', async ({ page, context, baseURL }) => {
-  const practiceQuiz = await seedQuiz('practice')
-  const examQuiz = await seedQuiz('exam', { passingScore: 60 })
+test('mypage shows single-mode answer history and exam attempt history after logging in', async ({ page, context, baseURL }) => {
+  const singleModeQuiz = await seedQuiz()
+  const examModeQuiz = await seedQuiz({ passingScore: 60 })
   const reader = await seedUser('reader')
   try {
     await loginAs(context, baseURL!, reader)
 
-    await page.goto(`/learn/quiz/${practiceQuiz.slug}`)
+    await page.goto(`/learn/quiz/${singleModeQuiz.slug}`)
+    await page.getByRole('button', { name: '単発モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '解答する' }).click()
     await expect(page.getByText('正解です！')).toBeVisible()
 
-    await page.goto(`/learn/quiz/${examQuiz.slug}`)
+    await page.goto(`/learn/quiz/${examModeQuiz.slug}`)
+    await page.getByRole('button', { name: '検定モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '提出する' }).click()
     await expect(page.getByText('1 / 1問正解')).toBeVisible()
@@ -56,18 +60,18 @@ test('mypage shows practice answer history and exam attempt history after loggin
     await page.goto('/learn/me')
     await expect(page.getByRole('heading', { name: 'クイズ・検定' })).toBeVisible()
 
-    // Practice-mode summary + expandable history.
-    await expect(page.getByText(practiceQuiz.title)).toBeVisible()
-    await expect(page.getByText('解答済み: 1 / 1問（正答率 100%）')).toBeVisible()
+    // Single-mode summary + expandable history.
+    await expect(page.getByText(singleModeQuiz.title)).toBeVisible()
+    await expect(page.getByText('単発モード解答済み: 1 / 1問（正答率 100%）')).toBeVisible()
     await page.getByRole('button', { name: '解答履歴を見る' }).click()
     await expect(page.getByText('2+2?')).toBeVisible()
 
     // Exam-mode summary + expandable attempt list + attempt detail modal.
-    await expect(page.getByText(examQuiz.title)).toBeVisible()
+    await expect(page.getByText(examModeQuiz.title)).toBeVisible()
     await expect(page.getByText(/受験回数: 1回/)).toBeVisible()
     await expect(page.getByText('直近の結果: 合格')).toBeVisible()
     await page.getByRole('button', { name: '受験履歴を見る' }).click()
-    // Scoped to a <button> role: the practice card above also contains the
+    // Scoped to a <button> role: the single-mode card above also contains the
     // substring "1 / 1問" in a plain <p>, which getByText's default
     // substring match would otherwise hit instead of the attempt row.
     await page.getByRole('button', { name: /1 \/ 1問/ }).click()
@@ -76,8 +80,8 @@ test('mypage shows practice answer history and exam attempt history after loggin
     await page.getByRole('button', { name: '閉じる', exact: true }).click()
     await expect(page.getByText('受験詳細')).not.toBeVisible()
   } finally {
-    await practiceQuiz.cleanup()
-    await examQuiz.cleanup()
+    await singleModeQuiz.cleanup()
+    await examModeQuiz.cleanup()
     await reader.cleanup()
   }
 })
@@ -116,6 +120,7 @@ test('admin can create a quiz with a question, publish it, and it becomes answer
     await expect(page.getByText('単一回答')).toBeVisible()
 
     await page.goto(`/learn/quiz/${slug}`)
+    await page.getByRole('button', { name: '単発モード' }).click()
     await page.getByLabel('4').check()
     await page.getByRole('button', { name: '解答する' }).click()
     await expect(page.getByText('正解です！')).toBeVisible()

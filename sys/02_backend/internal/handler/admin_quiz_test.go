@@ -19,7 +19,7 @@ func TestAdminCreateQuiz_ReaderIsRejected(t *testing.T) {
 	readerCookie := testutil.LoginCookieValue(t, pool, reader.ID)
 
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", readerCookie,
-		mustJSON(t, map[string]any{"slug": "should-not-exist", "title": "x", "mode": "practice"}))
+		mustJSON(t, map[string]any{"slug": "should-not-exist", "title": "x"}))
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("Reader POST /api/admin/quizzes = %d, want 403", rec.Code)
 	}
@@ -31,13 +31,13 @@ func TestAdminCreateQuiz_UnauthenticatedGets401(t *testing.T) {
 	router := testutil.NewRouter(t, pool)
 
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", "",
-		mustJSON(t, map[string]any{"slug": "x", "title": "x", "mode": "practice"}))
+		mustJSON(t, map[string]any{"slug": "x", "title": "x"}))
 	if rec.Code != http.StatusUnauthorized {
 		t.Errorf("unauthenticated POST /api/admin/quizzes = %d, want 401", rec.Code)
 	}
 }
 
-func TestAdminCreateQuiz_PracticeMode(t *testing.T) {
+func TestAdminCreateQuiz_WithoutPassingScore(t *testing.T) {
 	pool := testutil.TestDB(t)
 	t.Cleanup(func() { testutil.TruncateAll(t, pool) })
 	router := testutil.NewRouter(t, pool)
@@ -45,7 +45,7 @@ func TestAdminCreateQuiz_PracticeMode(t *testing.T) {
 	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
 
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", adminCookie,
-		mustJSON(t, map[string]any{"slug": "line-quiz", "title": "LINE運用クイズ", "mode": "practice", "published": true}))
+		mustJSON(t, map[string]any{"slug": "line-quiz", "title": "LINE運用クイズ", "published": true}))
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("admin POST /api/admin/quizzes = %d, want 201: %s", rec.Code, rec.Body.String())
 	}
@@ -55,11 +55,11 @@ func TestAdminCreateQuiz_PracticeMode(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 	if body["passing_score"] != nil {
-		t.Errorf("passing_score = %v, want nil for practice mode", body["passing_score"])
+		t.Errorf("passing_score = %v, want nil when not set", body["passing_score"])
 	}
 }
 
-func TestAdminCreateQuiz_PracticeModeWithPassingScoreRejected(t *testing.T) {
+func TestAdminCreateQuiz_WithPassingScore(t *testing.T) {
 	pool := testutil.TestDB(t)
 	t.Cleanup(func() { testutil.TruncateAll(t, pool) })
 	router := testutil.NewRouter(t, pool)
@@ -67,37 +67,9 @@ func TestAdminCreateQuiz_PracticeModeWithPassingScoreRejected(t *testing.T) {
 	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
 
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", adminCookie,
-		mustJSON(t, map[string]any{"slug": "bad-quiz", "title": "Bad", "mode": "practice", "passing_score": 70}))
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("POST with passing_score on practice mode = %d, want 400: %s", rec.Code, rec.Body.String())
-	}
-}
-
-func TestAdminCreateQuiz_InvalidModeRejected(t *testing.T) {
-	pool := testutil.TestDB(t)
-	t.Cleanup(func() { testutil.TruncateAll(t, pool) })
-	router := testutil.NewRouter(t, pool)
-	admin := testutil.CreateUser(t, pool, "admin")
-	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
-
-	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", adminCookie,
-		mustJSON(t, map[string]any{"slug": "bad-mode", "title": "Bad", "mode": "bogus"}))
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("POST with invalid mode = %d, want 400: %s", rec.Code, rec.Body.String())
-	}
-}
-
-func TestAdminCreateQuiz_ExamModeWithPassingScore(t *testing.T) {
-	pool := testutil.TestDB(t)
-	t.Cleanup(func() { testutil.TruncateAll(t, pool) })
-	router := testutil.NewRouter(t, pool)
-	admin := testutil.CreateUser(t, pool, "admin")
-	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
-
-	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", adminCookie,
-		mustJSON(t, map[string]any{"slug": "basic-line-exam", "title": "基礎LINE検定", "mode": "exam", "passing_score": 80, "published": true}))
+		mustJSON(t, map[string]any{"slug": "basic-line-exam", "title": "基礎LINE検定", "passing_score": 80, "published": true}))
 	if rec.Code != http.StatusCreated {
-		t.Fatalf("admin POST /api/admin/quizzes (exam) = %d, want 201: %s", rec.Code, rec.Body.String())
+		t.Fatalf("admin POST /api/admin/quizzes = %d, want 201: %s", rec.Code, rec.Body.String())
 	}
 
 	var body map[string]any
@@ -116,23 +88,23 @@ func TestAdminCreateQuiz_DuplicateSlugConflict(t *testing.T) {
 	admin := testutil.CreateUser(t, pool, "admin")
 	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
 
-	body := mustJSON(t, map[string]any{"slug": "dup-quiz", "title": "First", "mode": "practice"})
+	body := mustJSON(t, map[string]any{"slug": "dup-quiz", "title": "First"})
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", adminCookie, body)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("first create = %d, want 201: %s", rec.Code, rec.Body.String())
 	}
 
 	rec = testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", adminCookie,
-		mustJSON(t, map[string]any{"slug": "dup-quiz", "title": "Second", "mode": "practice"}))
+		mustJSON(t, map[string]any{"slug": "dup-quiz", "title": "Second"}))
 	if rec.Code != http.StatusConflict {
 		t.Errorf("duplicate slug create = %d, want 409", rec.Code)
 	}
 }
 
-func createTestQuiz(t *testing.T, router *gin.Engine, adminCookie string, mode string) string {
+func createTestQuiz(t *testing.T, router *gin.Engine, adminCookie string) string {
 	t.Helper()
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes", adminCookie,
-		mustJSON(t, map[string]any{"slug": "quiz-" + mode, "title": "Quiz", "mode": mode, "published": true}))
+		mustJSON(t, map[string]any{"slug": "quiz", "title": "Quiz", "published": true}))
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("create quiz = %d, want 201: %s", rec.Code, rec.Body.String())
 	}
@@ -149,7 +121,7 @@ func TestAdminCreateQuestion_TooFewChoicesRejected(t *testing.T) {
 	router := testutil.NewRouter(t, pool)
 	admin := testutil.CreateUser(t, pool, "admin")
 	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
-	quizID := createTestQuiz(t, router, adminCookie, "practice")
+	quizID := createTestQuiz(t, router, adminCookie)
 
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes/"+quizID+"/questions", adminCookie,
 		mustJSON(t, map[string]any{
@@ -168,7 +140,7 @@ func TestAdminCreateQuestion_NoCorrectChoiceRejected(t *testing.T) {
 	router := testutil.NewRouter(t, pool)
 	admin := testutil.CreateUser(t, pool, "admin")
 	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
-	quizID := createTestQuiz(t, router, adminCookie, "practice")
+	quizID := createTestQuiz(t, router, adminCookie)
 
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes/"+quizID+"/questions", adminCookie,
 		mustJSON(t, map[string]any{
@@ -190,7 +162,7 @@ func TestAdminCreateQuestion_MultipleCorrectRejectedWhenNotAllowMultiple(t *test
 	router := testutil.NewRouter(t, pool)
 	admin := testutil.CreateUser(t, pool, "admin")
 	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
-	quizID := createTestQuiz(t, router, adminCookie, "practice")
+	quizID := createTestQuiz(t, router, adminCookie)
 
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes/"+quizID+"/questions", adminCookie,
 		mustJSON(t, map[string]any{
@@ -213,7 +185,7 @@ func TestAdminCreateQuestion_MultipleCorrectAllowedWhenAllowMultiple(t *testing.
 	router := testutil.NewRouter(t, pool)
 	admin := testutil.CreateUser(t, pool, "admin")
 	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
-	quizID := createTestQuiz(t, router, adminCookie, "practice")
+	quizID := createTestQuiz(t, router, adminCookie)
 
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes/"+quizID+"/questions", adminCookie,
 		mustJSON(t, map[string]any{
@@ -236,7 +208,7 @@ func TestAdminGetQuiz_EmbedsQuestionsWithIsCorrect(t *testing.T) {
 	router := testutil.NewRouter(t, pool)
 	admin := testutil.CreateUser(t, pool, "admin")
 	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
-	quizID := createTestQuiz(t, router, adminCookie, "practice")
+	quizID := createTestQuiz(t, router, adminCookie)
 
 	rec := testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes/"+quizID+"/questions", adminCookie,
 		mustJSON(t, map[string]any{
@@ -279,7 +251,7 @@ func TestAdminDeleteQuiz_CascadesQuestions(t *testing.T) {
 	router := testutil.NewRouter(t, pool)
 	admin := testutil.CreateUser(t, pool, "admin")
 	adminCookie := testutil.LoginCookieValue(t, pool, admin.ID)
-	quizID := createTestQuiz(t, router, adminCookie, "practice")
+	quizID := createTestQuiz(t, router, adminCookie)
 
 	testutil.DoRequest(t, router, http.MethodPost, "/api/admin/quizzes/"+quizID+"/questions", adminCookie,
 		mustJSON(t, map[string]any{

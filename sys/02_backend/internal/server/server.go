@@ -135,5 +135,11 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	api.GET("/me/quizzes/:slug/attempts/:attemptId", requireReader, quizHandler.GetAttempt)
 	api.GET("/me/quizzes/:slug/progress", requireReader, quizHandler.GetQuizProgress)
 
+	// Reader-owned history deletion (dev-plan-quiz-history-delete).
+	api.DELETE("/me/quizzes/:slug/history/:answerId", requireReader, quizHandler.DeletePracticeAnswer)
+	api.DELETE("/me/quizzes/:slug/history", requireReader, quizHandler.DeleteAllPracticeHistory)
+	api.DELETE("/me/quizzes/:slug/attempts/:attemptId", requireReader, quizHandler.DeleteAttempt)
+	api.DELETE("/me/quizzes/:slug/attempts", requireReader, quizHandler.DeleteAllAttempts)
+
 	return router
 }

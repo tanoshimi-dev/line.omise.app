@@ -8,16 +8,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Quiz mirrors the `quizzes` table (dev-plan-2-1-db-migration). Mode
-// distinguishes a practice-mode quiz (per-question immediate feedback) from
-// an exam-mode quiz (bulk submit, final score) — see dev-plan-2-2-admin-api
-// background note on terminology.
+// Quiz mirrors the `quizzes` table (dev-plan-2-1-db-migration). A reader
+// chooses per-attempt whether to answer question-by-question (immediate
+// feedback) or submit the whole quiz at once (final score) — see
+// dev-plan-quiz-mode-selection.
 type Quiz struct {
 	ID           int64
 	Slug         string
 	Title        string
 	Description  string
-	Mode         string
 	PassingScore *int
 	Published    bool
 }
@@ -62,7 +61,7 @@ func NewQuizRepository(db *pgxpool.Pool) *QuizRepository {
 // admin quiz list (dev-plan-2-2 2-2.1).
 func (r *QuizRepository) ListAll(ctx context.Context) ([]Quiz, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, slug, title, COALESCE(description, ''), mode, passing_score, published
+		SELECT id, slug, title, COALESCE(description, ''), passing_score, published
 		FROM quizzes
 		ORDER BY id
 	`)
@@ -84,7 +83,7 @@ func (r *QuizRepository) ListAll(ctx context.Context) ([]Quiz, error) {
 
 func (r *QuizRepository) GetByID(ctx context.Context, id int64) (*Quiz, error) {
 	row := r.db.QueryRow(ctx, `
-		SELECT id, slug, title, COALESCE(description, ''), mode, passing_score, published
+		SELECT id, slug, title, COALESCE(description, ''), passing_score, published
 		FROM quizzes WHERE id = $1
 	`, id)
 	return scanQuiz(row)
@@ -95,7 +94,7 @@ func (r *QuizRepository) GetByID(ctx context.Context, id int64) (*Quiz, error) {
 // published quiz, mirroring CourseRepository.ListPublished).
 func (r *QuizRepository) ListPublished(ctx context.Context) ([]Quiz, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, slug, title, COALESCE(description, ''), mode, passing_score, published
+		SELECT id, slug, title, COALESCE(description, ''), passing_score, published
 		FROM quizzes WHERE published = true
 		ORDER BY id
 	`)
@@ -120,27 +119,27 @@ func (r *QuizRepository) ListPublished(ctx context.Context) ([]Quiz, error) {
 // reachable through the public API).
 func (r *QuizRepository) GetPublishedBySlug(ctx context.Context, slug string) (*Quiz, error) {
 	row := r.db.QueryRow(ctx, `
-		SELECT id, slug, title, COALESCE(description, ''), mode, passing_score, published
+		SELECT id, slug, title, COALESCE(description, ''), passing_score, published
 		FROM quizzes WHERE slug = $1 AND published = true
 	`, slug)
 	return scanQuiz(row)
 }
 
-func (r *QuizRepository) Create(ctx context.Context, slug, title, description, mode string, passingScore *int, published bool) (*Quiz, error) {
+func (r *QuizRepository) Create(ctx context.Context, slug, title, description string, passingScore *int, published bool) (*Quiz, error) {
 	row := r.db.QueryRow(ctx, `
-		INSERT INTO quizzes (slug, title, description, mode, passing_score, published)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, slug, title, COALESCE(description, ''), mode, passing_score, published
-	`, slug, title, description, mode, passingScore, published)
+		INSERT INTO quizzes (slug, title, description, passing_score, published)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, slug, title, COALESCE(description, ''), passing_score, published
+	`, slug, title, description, passingScore, published)
 	return scanQuiz(row)
 }
 
-func (r *QuizRepository) Update(ctx context.Context, id int64, slug, title, description, mode string, passingScore *int, published bool) (*Quiz, error) {
+func (r *QuizRepository) Update(ctx context.Context, id int64, slug, title, description string, passingScore *int, published bool) (*Quiz, error) {
 	row := r.db.QueryRow(ctx, `
-		UPDATE quizzes SET slug = $2, title = $3, description = $4, mode = $5, passing_score = $6, published = $7
+		UPDATE quizzes SET slug = $2, title = $3, description = $4, passing_score = $5, published = $6
 		WHERE id = $1
-		RETURNING id, slug, title, COALESCE(description, ''), mode, passing_score, published
-	`, id, slug, title, description, mode, passingScore, published)
+		RETURNING id, slug, title, COALESCE(description, ''), passing_score, published
+	`, id, slug, title, description, passingScore, published)
 	return scanQuiz(row)
 }
 
@@ -341,7 +340,7 @@ func insertQuizChoices(ctx context.Context, tx pgx.Tx, questionID int64, choices
 
 func scanQuiz(row rowScanner) (*Quiz, error) {
 	var q Quiz
-	err := row.Scan(&q.ID, &q.Slug, &q.Title, &q.Description, &q.Mode, &q.PassingScore, &q.Published)
+	err := row.Scan(&q.ID, &q.Slug, &q.Title, &q.Description, &q.PassingScore, &q.Published)
 	if err != nil {
 		return nil, wrapNotFound(err)
 	}
@@ -473,6 +472,55 @@ func (r *QuizRepository) GetOwnAttempt(ctx context.Context, attemptID, userID in
 		return nil, wrapNotFound(err)
 	}
 	return &a, nil
+}
+
+// DeleteOwnAttempt deletes one exam-mode attempt, but only if it belongs to
+// userID — same ownership-scoped-at-the-query-level pattern as
+// GetOwnAttempt (dev-plan-quiz-history-delete). Its user_quiz_answers rows
+// cascade-delete via the FK (007_quiz.up.sql).
+func (r *QuizRepository) DeleteOwnAttempt(ctx context.Context, attemptID, userID int64) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM user_quiz_attempts WHERE id = $1 AND user_id = $2`, attemptID, userID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// DeleteAttemptsForQuiz deletes every exam-mode attempt userID has for
+// quizID (dev-plan-quiz-history-delete's bulk "clear history" action).
+// Deleting an already-empty history is not an error.
+func (r *QuizRepository) DeleteAttemptsForQuiz(ctx context.Context, userID, quizID int64) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM user_quiz_attempts WHERE user_id = $1 AND quiz_id = $2`, userID, quizID)
+	return err
+}
+
+// DeleteOwnPracticeAnswer deletes one question-by-question answer (attempt_id
+// IS NULL), but only if it belongs to userID.
+func (r *QuizRepository) DeleteOwnPracticeAnswer(ctx context.Context, answerID, userID int64) error {
+	tag, err := r.db.Exec(ctx, `
+		DELETE FROM user_quiz_answers WHERE id = $1 AND user_id = $2 AND attempt_id IS NULL
+	`, answerID, userID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// DeletePracticeHistoryForQuiz deletes every question-by-question answer
+// userID has for quizID. Deleting an already-empty history is not an error.
+func (r *QuizRepository) DeletePracticeHistoryForQuiz(ctx context.Context, userID, quizID int64) error {
+	_, err := r.db.Exec(ctx, `
+		DELETE FROM user_quiz_answers
+		WHERE user_id = $1 AND attempt_id IS NULL
+		AND question_id IN (SELECT id FROM quiz_questions WHERE quiz_id = $2)
+	`, userID, quizID)
+	return err
 }
 
 // ListAnswersForAttempt returns every answer recorded as part of one
