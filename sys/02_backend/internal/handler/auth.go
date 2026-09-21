@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -120,9 +121,33 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 			_ = h.Sessions.Delete(c.Request.Context(), id)
 		}
 	}
+	h.clearSessionCookie(c)
+	c.Status(http.StatusNoContent)
+}
+
+// DeleteMe permanently deletes the authenticated user's account and all
+// current user-owned data through the database's foreign-key cascades.
+func (h *AuthHandler) DeleteMe(c *gin.Context) {
+	user := middleware.CurrentUser(c)
+	if user == nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	if err := h.Users.DeleteByID(c.Request.Context(), user.ID); err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	h.clearSessionCookie(c)
+	c.Status(http.StatusNoContent)
+}
+
+func (h *AuthHandler) clearSessionCookie(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie(session.CookieName, "", -1, "/", "", h.CookieSecure, true)
-	c.Status(http.StatusNoContent)
 }
 
 // Me returns the logged-in user. Mount behind middleware.RequireReader.

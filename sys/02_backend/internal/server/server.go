@@ -58,6 +58,7 @@ func New(cfg config.Config, dbPool *database.Pool) *gin.Engine {
 	authGroup.GET("/google/callback", authHandler.Callback("google"))
 	authGroup.POST("/logout", authHandler.Logout)
 	authGroup.GET("/me", requireReader, authHandler.Me)
+	authGroup.DELETE("/me", requireReader, authHandler.DeleteMe)
 
 	// Public content API (dev-plan-05-content-api) — no login required.
 	api := router.Group("/api")

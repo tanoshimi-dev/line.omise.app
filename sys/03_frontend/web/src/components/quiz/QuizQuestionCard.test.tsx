@@ -50,7 +50,7 @@ const oneQuestionQuiz: Quiz = {
 describe('QuizQuestionCard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockedUseAuth.mockReturnValue({ user: baseUser, loading: false, refresh: vi.fn(), logout: vi.fn() })
+    mockedUseAuth.mockReturnValue({ user: baseUser, loading: false, refresh: vi.fn(), logout: vi.fn(), deleteAccount: vi.fn() })
   })
 
   it('answers a question, shows the result and explanation, then finishes', async () => {
@@ -80,7 +80,7 @@ describe('QuizQuestionCard', () => {
   })
 
   it('shows a login prompt on the finish screen when logged out', async () => {
-    mockedUseAuth.mockReturnValue({ user: null, loading: false, refresh: vi.fn(), logout: vi.fn() })
+    mockedUseAuth.mockReturnValue({ user: null, loading: false, refresh: vi.fn(), logout: vi.fn(), deleteAccount: vi.fn() })
     mockedApi.post.mockResolvedValueOnce({
       question_id: '100',
       is_correct: false,

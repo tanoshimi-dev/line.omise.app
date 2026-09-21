@@ -30,7 +30,7 @@ describe('MyProgressPage', () => {
   })
 
   it('shows only a login prompt, and no quiz/exam section, when logged out', async () => {
-    mockedUseAuth.mockReturnValue({ user: null, loading: false, refresh: vi.fn(), logout: vi.fn() })
+    mockedUseAuth.mockReturnValue({ user: null, loading: false, refresh: vi.fn(), logout: vi.fn(), deleteAccount: vi.fn() })
 
     render(<MyProgressPage />)
 
@@ -40,7 +40,7 @@ describe('MyProgressPage', () => {
   })
 
   it('shows the quiz/exam section when logged in', async () => {
-    mockedUseAuth.mockReturnValue({ user: baseUser, loading: false, refresh: vi.fn(), logout: vi.fn() })
+    mockedUseAuth.mockReturnValue({ user: baseUser, loading: false, refresh: vi.fn(), logout: vi.fn(), deleteAccount: vi.fn() })
     mockedApi.get.mockImplementation((path: unknown) => {
       if (path === '/api/me/quizzes/progress') {
         return Promise.resolve({ quizzes: [] } satisfies MyQuizzesProgress)

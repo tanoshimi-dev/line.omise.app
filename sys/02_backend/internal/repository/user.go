@@ -5,10 +5,15 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+// ErrUserNotFound is returned when a requested user no longer exists.
+var ErrUserNotFound = errors.New("user not found")
 
 // User mirrors the `users` table (dev-plan-02-database 2.2).
 type User struct {
@@ -68,6 +73,19 @@ func (r *UserRepository) GetByID(ctx context.Context, id int64) (*User, error) {
 	return scanUser(row)
 }
 
+// DeleteByID permanently removes a user. Database foreign keys cascade the
+// deletion to every session and current user-owned quiz record.
+func (r *UserRepository) DeleteByID(ctx context.Context, id int64) error {
+	result, err := r.db.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}
+
 type rowScanner interface {
 	Scan(dest ...any) error
 }
@@ -75,6 +93,9 @@ type rowScanner interface {
 func scanUser(row rowScanner) (*User, error) {
 	var u User
 	err := row.Scan(&u.ID, &u.Provider, &u.ProviderUserID, &u.Email, &u.DisplayName, &u.AvatarURL, &u.Role, &u.CreatedAt, &u.UpdatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrUserNotFound
+	}
 	if err != nil {
 		return nil, err
 	}

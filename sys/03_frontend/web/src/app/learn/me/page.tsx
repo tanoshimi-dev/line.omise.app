@@ -13,6 +13,7 @@
 import { useAuth } from '@/lib/auth'
 import LoginPrompt from '@/components/learn/LoginPrompt'
 import QuizProgressSection from '@/components/mypage/QuizProgressSection'
+import DeleteAccountSection from '@/components/mypage/DeleteAccountSection'
 
 export default function MyProgressPage() {
   const { user, loading: authLoading } = useAuth()
@@ -28,7 +29,10 @@ export default function MyProgressPage() {
           <LoginPrompt message="ログインすると、学習の進捗を確認できます。" />
         </div>
       ) : (
-        <QuizProgressSection />
+        <>
+          <QuizProgressSection />
+          <DeleteAccountSection />
+        </>
       )}
     </div>
   )

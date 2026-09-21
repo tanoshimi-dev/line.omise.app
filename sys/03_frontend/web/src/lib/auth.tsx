@@ -25,6 +25,7 @@ interface AuthState {
   loading: boolean
   refresh: () => Promise<void>
   logout: () => Promise<void>
+  deleteAccount: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -66,11 +67,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = '/'
   }
 
+  const deleteAccount = async () => {
+    await api.delete('/auth/me')
+    setUser(null)
+    // Like logout, a hard navigation prevents stale protected route content
+    // from surviving in the client router after the account is gone.
+    window.location.href = '/'
+  }
+
   useEffect(() => {
     void refresh()
   }, [])
 
-  return <AuthContext.Provider value={{ user, loading, refresh, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, loading, refresh, logout, deleteAccount }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth(): AuthState {

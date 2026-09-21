@@ -60,7 +60,7 @@ const examQuiz: Quiz = {
 describe('ExamRunner', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockedUseAuth.mockReturnValue({ user: baseUser, loading: false, refresh: vi.fn(), logout: vi.fn() })
+    mockedUseAuth.mockReturnValue({ user: baseUser, loading: false, refresh: vi.fn(), logout: vi.fn(), deleteAccount: vi.fn() })
     vi.spyOn(window, 'confirm').mockReturnValue(true)
   })
 
@@ -184,7 +184,7 @@ describe('ExamRunner', () => {
   })
 
   it('shows a login prompt on the result screen when logged out', async () => {
-    mockedUseAuth.mockReturnValue({ user: null, loading: false, refresh: vi.fn(), logout: vi.fn() })
+    mockedUseAuth.mockReturnValue({ user: null, loading: false, refresh: vi.fn(), logout: vi.fn(), deleteAccount: vi.fn() })
     mockedApi.post.mockResolvedValueOnce({
       quiz_id: '1',
       score: 0,
