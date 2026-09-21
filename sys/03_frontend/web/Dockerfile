@@ -5,6 +5,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+FROM deps AS dev
+# Source is mounted by docker-compose.override.yml at runtime. Keeping
+# node_modules in this image gives the container Linux-native dependencies.
+
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

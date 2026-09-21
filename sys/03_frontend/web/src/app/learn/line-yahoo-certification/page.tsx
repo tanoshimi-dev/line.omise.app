@@ -15,7 +15,8 @@ export default async function QuizListPage() {
     <div className="mx-auto max-w-5xl px-4 py-16 sm:py-24">
       <h1 className="text-3xl font-bold text-gray-900">LINEヤフー認定資格</h1>
       <p className="mt-4 text-gray-600">
-        LINEヤフー認定資格の取得に向けて、知識を確認できます。解答を始める前に、単発モード（1問ずつ解答・即採点）か検定モード（まとめて解答・最終スコア）を選べます。
+        LINEヤフー認定資格の取得に向けて、知識を確認できます。<br />
+        ログインした状態で実施すると、回答結果が記録され、後から振り返ることができます。
       </p>
 
       {data.quizzes.length === 0 ? (

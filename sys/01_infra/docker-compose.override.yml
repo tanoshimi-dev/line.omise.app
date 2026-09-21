@@ -1,0 +1,17 @@
+# Applied automatically with docker-compose.yml for local development.
+# Production deployments use docker-compose.prod.yml and do not load this file.
+services:
+  line-web:
+    build:
+      target: dev
+    command: npm run dev -- --hostname 0.0.0.0 --webpack
+    environment:
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ../03_frontend/web:/app
+      - line-web-node-modules:/app/node_modules
+      - line-web-next-cache:/app/.next
+
+volumes:
+  line-web-node-modules:
+  line-web-next-cache:
