@@ -36,10 +36,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" className={notoSansJP.variable}>
-      <body className="min-h-screen">
+      <body className="flex min-h-screen flex-col">
         <AuthProvider>
           <Header />
-          <main className="pt-16">{children}</main>
+          <main className="flex-1 pt-16">{children}</main>
           <Footer />
         </AuthProvider>
         <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />
