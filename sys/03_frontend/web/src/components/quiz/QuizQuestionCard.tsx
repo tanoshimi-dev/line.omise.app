@@ -2,7 +2,8 @@
 
 // Single-mode quiz runner (dev-plan-2-4-frontend-quiz-ui 2-4.2): shows one
 // question at a time, grades it immediately via POST /api/quiz-questions/:id
-// /answer, and reveals the explanation before moving to the next question.
+// /answer, and reveals the explanation. Learners can move between questions
+// without answering, matching the exam-mode navigation behavior.
 // Works whether the caller is logged in or not (dev-plan-2-3 2-3.2) — only
 // the login prompt at the end differs. Any quiz can be run this way — the
 // reader picks single mode vs exam mode per attempt (dev-plan-quiz-mode-selection).
@@ -184,7 +185,7 @@ function QuestionStep({
             前の問題へ
           </button>
         )}
-        {!result ? (
+        {!result && (
           <button
             onClick={() => void submit()}
             disabled={selected.length === 0 || submitting}
@@ -192,14 +193,14 @@ function QuestionStep({
           >
             {submitting ? '採点中…' : '解答する'}
           </button>
-        ) : (
-          <button
-            onClick={onNext}
-            className="rounded-full border-2 border-line-green px-6 py-2.5 text-sm font-semibold text-line-green transition-colors hover:bg-line-green hover:text-white"
-          >
-            {isLast ? '結果を見る' : '次の問題へ'}
-          </button>
         )}
+        <button
+          type="button"
+          onClick={onNext}
+          className="rounded-full border-2 border-line-green px-6 py-2.5 text-sm font-semibold text-line-green transition-colors hover:bg-line-green hover:text-white"
+        >
+          {isLast ? '結果を見る' : '次の問題へ'}
+        </button>
       </div>
     </div>
   )

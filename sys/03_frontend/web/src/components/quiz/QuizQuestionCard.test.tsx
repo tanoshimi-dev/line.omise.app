@@ -105,6 +105,32 @@ describe('QuizQuestionCard', () => {
     expect(screen.getByText('解答する')).toBeDisabled()
   })
 
+  it('can move to the next question without answering and return without submitting', async () => {
+    const twoQuestionQuiz: Quiz = {
+      ...oneQuestionQuiz,
+      questions: [
+        oneQuestionQuiz.questions[0],
+        {
+          id: '101',
+          question_text: '3+3?',
+          allow_multiple: false,
+          sort_order: 2,
+          choices: [{ id: '1010', choice_text: '6', sort_order: 1 }],
+        },
+      ],
+    }
+
+    render(<QuizQuestionCard quiz={twoQuestionQuiz} />)
+
+    await userEvent.click(screen.getByText('次の問題へ'))
+    expect(screen.getByText('3+3?')).toBeInTheDocument()
+    expect(mockedApi.post).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByText('前の問題へ'))
+    expect(screen.getByText('2+2?')).toBeInTheDocument()
+    expect(mockedApi.post).not.toHaveBeenCalled()
+  })
+
   it('going back to a graded question redisplays its result without re-submitting', async () => {
     const twoQuestionQuiz: Quiz = {
       ...oneQuestionQuiz,
